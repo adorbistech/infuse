@@ -1,7 +1,7 @@
 /**
- * Central Reactive Store for INFUSE Frontend.
+ * Central Reactive Store for INFUSE Frontend (Hardened).
  * 
- * Manages UI state, selected routes, active view models, theme, and subscribers.
+ * Manages UI state, selected routes, active view models, filters, theme, and subscribers.
  */
 
 import { MockDataProvider } from "../data/MockDataProvider.js";
@@ -14,6 +14,11 @@ export class Store {
       theme: "dark",
       executionId: "exec_01J8K7A2",
       activeEngineTab: "token", // "token" | "economics" | "health" | "governor"
+      historyFilter: {
+        query: "",
+        state: "ALL",
+        agent: "ALL"
+      },
       executionData: null,
       policyData: null,
       isLoading: false,
@@ -51,6 +56,11 @@ export class Store {
 
   setActiveEngineTab(tab) {
     this.state.activeEngineTab = tab;
+    this.notify();
+  }
+
+  setHistoryFilter(filterKey, value) {
+    this.state.historyFilter[filterKey] = value;
     this.notify();
   }
 

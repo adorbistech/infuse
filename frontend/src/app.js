@@ -1,7 +1,7 @@
 /**
- * INFUSE Frontend Application Root.
+ * INFUSE Frontend Application Root (Hardened).
  * 
- * Bootstraps store, event listeners, routing, and renders pages into DOM.
+ * Bootstraps store, event listeners, routing, history filters, and renders pages into DOM.
  */
 
 import { Store } from "./state/store.js";
@@ -40,6 +40,7 @@ export class InfuseApp {
   }
 
   bindEvents() {
+    // Global click delegation
     this.root.addEventListener("click", (e) => {
       // Navigation
       const navExec = e.target.closest("#nav-execution-btn");
@@ -99,11 +100,61 @@ export class InfuseApp {
         return;
       }
 
+      // Select execution row or button
+      const selectBtn = e.target.closest(".select-exec-btn");
+      if (selectBtn) {
+        const execId = selectBtn.getAttribute("data-exec-id");
+        if (execId) {
+          this.store.loadExecutionData(execId);
+        }
+        return;
+      }
+
+      const execRow = e.target.closest("[data-exec-row]");
+      if (execRow && !e.target.closest("button") && !e.target.closest("select") && !e.target.closest("input")) {
+        const execId = execRow.getAttribute("data-exec-row");
+        if (execId) {
+          this.store.loadExecutionData(execId);
+        }
+        return;
+      }
+
       // Save policy button
       const savePolicyBtn = e.target.closest("#save-policy-btn");
       if (savePolicyBtn) {
         this.handleSavePolicy();
         return;
+      }
+    });
+
+    // Global change delegation for selects and search
+    this.root.addEventListener("change", (e) => {
+      // Execution header dropdown change
+      if (e.target.id === "execSelectDropdown") {
+        const selectedId = e.target.value;
+        if (selectedId) {
+          this.store.loadExecutionData(selectedId);
+        }
+        return;
+      }
+
+      // State filter dropdown
+      if (e.target.id === "historyStateFilter") {
+        this.store.setHistoryFilter("state", e.target.value);
+        return;
+      }
+
+      // Agent filter dropdown
+      if (e.target.id === "historyAgentFilter") {
+        this.store.setHistoryFilter("agent", e.target.value);
+        return;
+      }
+    });
+
+    // Search input event (input event for instant responsiveness)
+    this.root.addEventListener("input", (e) => {
+      if (e.target.id === "historySearchInput") {
+        this.store.setHistoryFilter("query", e.target.value);
       }
     });
 
@@ -155,6 +206,10 @@ export class InfuseApp {
 
   render() {
     const state = this.store.state;
+    // Remember search focus if present
+    const activeSearch = document.activeElement?.id === "historySearchInput";
+    const cursorPosition = activeSearch ? document.activeElement.selectionStart : null;
+
     const pageContent = state.route === "governance" 
       ? renderGovernancePage(this.store)
       : renderExecutionPage(this.store);
@@ -167,5 +222,16 @@ export class InfuseApp {
         </div>
       </main>
     `;
+
+    // Restore search input focus and cursor if user was typing
+    if (activeSearch) {
+      const searchInput = this.root.querySelector("#historySearchInput");
+      if (searchInput) {
+        searchInput.focus();
+        if (cursorPosition !== null) {
+          searchInput.setSelectionRange(cursorPosition, cursorPosition);
+        }
+      }
+    }
   }
 }

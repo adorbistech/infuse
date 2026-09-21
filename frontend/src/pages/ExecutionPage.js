@@ -1,5 +1,5 @@
 /**
- * Execution / Information Page Assembler.
+ * Execution / Information Page Assembler (Hardened).
  */
 
 import { renderExecutionHeader } from "../components/ExecutionHeader.js";
@@ -19,9 +19,11 @@ export function renderExecutionPage(store) {
     return `<div class="p-8 text-center text-on-surface-variant font-code-sm">Loading execution telemetry...</div>`;
   }
 
+  const { query, state, agent } = store.state.historyFilter;
+
   return `
     <div class="space-y-4">
-      ${renderExecutionHeader(data.summary)}
+      ${renderExecutionHeader(data.summary, data.history)}
       ${renderStateSelector(data.state)}
       ${renderMetricsGrid(data.metrics)}
       ${renderCharts(data.metrics)}
@@ -39,7 +41,7 @@ export function renderExecutionPage(store) {
         </div>
       </div>
 
-      ${renderHistoryTable(data.history)}
+      ${renderHistoryTable(data.history, data.summary.execution_id, query, state, agent)}
     </div>
   `;
 }

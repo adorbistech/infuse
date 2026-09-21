@@ -1,7 +1,7 @@
 # INFUSE Frontend Architecture & Backend Integration Map
 
-**Milestone:** Block 01 (Frontend Foundation & Integration)  
-**Status:** Complete  
+**Milestone:** Block 02 (Frontend Information / Execution Surface Hardening)  
+**Status:** Frozen  
 **Visual Baseline:** Stitch Console (`Autonomous Governance Obsidian` Theme)  
 **Contract Baseline:** Block 00 Universal Contracts (`infuse.contracts.frontend`)  
 
@@ -9,18 +9,25 @@
 
 ## 1. Overview
 
-The INFUSE Frontend is structured as an architectural **integration map**. Every displayed field, badge, chart, and button is bound to a normalized `ViewModel` that maps directly to a future backend engine and REST API endpoint.
+The INFUSE Execution / Information surface provides a comprehensive, glass-box operational telemetry view of real-time autonomous AI agent execution.
+
+Every displayed field, metric, status pill, chart, and timeline event is strictly mapped to normalized `ViewModels` delivered through the [`IDataProvider`](file:///Users/ssd/infuse/frontend/src/data/IDataProvider.js) interface, completely decoupled from database schemas and backend execution logic.
 
 ```text
 ┌────────────────────────────────────────────────────────┐
 │               INFUSE FRONTEND CONSOLE                  │
 │                                                        │
-│  [Execution View]                  [Governance View]   │
-│         │                                  │           │
-│         ▼                                  ▼           │
-│  Execution ViewModels             Governance ViewModels│
-│  (Summary, Metrics, State,        (Policy, Bindings,   │
-│   Governor, Health, Timeline)      Strictness Index)   │
+│  [Execution / Information Surface]                     │
+│  ├── Execution Context & Switcher                      │
+│  ├── Dedicated Execution State (5 States)              │
+│  ├── 8-Card Metrics Grid (Tabular-nums)                │
+│  ├── SVG Token Growth & Cost Time-Series               │
+│  ├── Web, Tool, File & Retry Activity                  │
+│  ├── Central Governor Action Banner (7 Actions)        │
+│  ├── Provider & Model Health                           │
+│  ├── Traceable Event Timeline                          │
+│  ├── Runtime Engine Signal Inspector (4 Engines)       │
+│  └── Filterable Execution History                      │
 └──────────────────────────┬─────────────────────────────┘
                            │
                            ▼
@@ -29,7 +36,7 @@ The INFUSE Frontend is structured as an architectural **integration map**. Every
           ┌────────────────┴────────────────┐
           ▼                                 ▼
    MockDataProvider                 ApiDataProvider
-   (Active in Block 01)            (Future Block 05)
+   (Active in Blocks 01-02)         (Future Block 05)
                                             │
                                             ▼
                                    Universal HTTP API
@@ -38,76 +45,47 @@ The INFUSE Frontend is structured as an architectural **integration map**. Every
 
 ---
 
-## 2. Component-to-Backend Integration Mapping
+## 2. Execution Surface Component-to-Backend Integration Map
 
-| UI Section / Field | Component | Frontend ViewModel | Future Backend Origin | API Endpoint |
-|---|---|---|---|---|
-| **Execution Context Header** | `ExecutionHeader.js` | `ExecutionSummaryViewModel` | Execution API & Lifecycle | `GET /v1/executions/{id}` |
-| **Active Agent & Pool** | `ExecutionHeader.js` | `ExecutionSummaryViewModel` | Agent Adapter / Context | `GET /v1/executions/{id}` |
-| **Execution State Badge & Pills** | `StateSelector.js` | `ExecutionStateViewModel` | Execution State Engine | `GET /v1/executions/{id}` |
-| **Input / Cached / Output Tokens** | `MetricsGrid.js` | `ExecutionMetricsViewModel` | Token Observer | `GET /v1/executions/{id}` |
-| **Cost & Budget %** | `MetricsGrid.js` | `ExecutionMetricsViewModel` | Economics Engine | `GET /v1/executions/{id}` |
-| **RPM & Request Count** | `MetricsGrid.js` | `ExecutionMetricsViewModel` | API Gateway Rate Limiter | `GET /v1/executions/{id}` |
-| **Token Growth Chart** | `Charts.js` | `ExecutionMetricsViewModel` | Token Observer Stream | `GET /v1/executions/{id}` |
-| **Cost Over Time Chart** | `Charts.js` | `ExecutionMetricsViewModel` | Economics Engine Stream | `GET /v1/executions/{id}` |
-| **Web & Tool Activity** | `ActivityPanel.js` | `ExecutionMetricsViewModel` | Tool & Web Observers | `GET /v1/executions/{id}` |
-| **Governor Regulation Banner** | `GovernorPanel.js` | `GovernorDecisionViewModel` | Central Governor | `GET /v1/executions/{id}` |
-| **Decision Rationale & History** | `GovernorPanel.js` | `GovernorDecisionViewModel` | Governor Audit Trail | `GET /v1/executions/{id}` |
-| **Provider Latency & Availability** | `HealthPanel.js` | `ProviderModelHealthViewModel`| Health Engine | `GET /v1/executions/{id}` |
-| **Chronological Event Stream** | `Timeline.js` | `ExecutionTimelineEventViewModel`| Event Bus & Ledger | `GET /v1/executions/{id}/events` |
-| **Signal Inspector Tabs** | `RuntimeEngines.js`| `ExecutionMetricsViewModel` | Real-time Engine Observers | `GET /v1/executions/{id}` |
-| **Historical Execution Runs** | `HistoryTable.js` | `ExecutionHistoryItemViewModel`| Execution History Store | `GET /v1/executions` |
-| **10-Section Governance Policy** | `PolicyForm.js` | `GovernancePolicyViewModel` | Policy Manager | `GET /v1/policies/{id}` |
-| **Policy Save / Update** | `PolicyForm.js` | `GovernancePolicyViewModel` | Policy Manager API | `PUT /v1/policies/{id}` |
+| # | Execution Section | Component | Frontend ViewModel | Future Backend Origin | API Route |
+|---|---|---|---|---|---|
+| **1** | **Execution Context Header** | [`ExecutionHeader.js`](file:///Users/ssd/infuse/frontend/src/components/ExecutionHeader.js) | `ExecutionSummaryViewModel` | Execution API & Lifecycle | `GET /v1/executions/{id}` |
+| **2** | **Execution State** | [`StateSelector.js`](file:///Users/ssd/infuse/frontend/src/components/StateSelector.js) | `ExecutionStateViewModel` | Execution State Engine | `GET /v1/executions/{id}` |
+| **3** | **Execution Metrics (8 Cards)** | [`MetricsGrid.js`](file:///Users/ssd/infuse/frontend/src/components/MetricsGrid.js) | `ExecutionMetricsViewModel` | Token Observer & Economics | `GET /v1/executions/{id}` |
+| **4** | **Token Growth Time-Series** | [`Charts.js`](file:///Users/ssd/infuse/frontend/src/components/Charts.js) | `ExecutionMetricsViewModel` | Token Observer Stream | `GET /v1/executions/{id}` |
+| **5** | **Cost Over Time Chart** | [`Charts.js`](file:///Users/ssd/infuse/frontend/src/components/Charts.js) | `ExecutionMetricsViewModel` | Economics Engine Stream | `GET /v1/executions/{id}` |
+| **6** | **Execution Activity** | [`ActivityPanel.js`](file:///Users/ssd/infuse/frontend/src/components/ActivityPanel.js) | `ExecutionMetricsViewModel` | Tool & Web Observers | `GET /v1/executions/{id}` |
+| **7** | **Governor Action Banner** | [`GovernorPanel.js`](file:///Users/ssd/infuse/frontend/src/components/GovernorPanel.js) | `GovernorDecisionViewModel` | Central Governor | `GET /v1/executions/{id}` |
+| **8** | **Provider / Model Health** | [`HealthPanel.js`](file:///Users/ssd/infuse/frontend/src/components/HealthPanel.js) | `ProviderModelHealthViewModel`| Health Engine | `GET /v1/executions/{id}` |
+| **9** | **Chronological Event Timeline**| [`Timeline.js`](file:///Users/ssd/infuse/frontend/src/components/Timeline.js) | `ExecutionTimelineEventViewModel`| Event Bus & Ledger | `GET /v1/executions/{id}/events` |
+| **10**| **Runtime Engine Inspector** | [`RuntimeEngines.js`](file:///Users/ssd/infuse/frontend/src/components/RuntimeEngines.js)| `ExecutionMetricsViewModel` | Real-time Engine Observers | `GET /v1/executions/{id}` |
+| **11**| **Execution History Table** | [`HistoryTable.js`](file:///Users/ssd/infuse/frontend/src/components/HistoryTable.js) | `ExecutionHistoryItemViewModel`| Execution History Store | `GET /v1/executions` |
 
 ---
 
-## 3. Frontend Architecture Directory Structure
+## 3. Canonical States & Governor Actions Supported
 
-```text
-frontend/
-├── index.html                  # Single-Page Application HTML host
-├── package.json                # Test and start configuration
-├── src/
-│   ├── app.js                  # Application root & event delegation
-│   ├── contracts/
-│   │   └── viewmodels.js       # Language-neutral JavaScript ViewModels
-│   ├── data/
-│   │   ├── IDataProvider.js    # Data provider interface abstraction
-│   │   └── MockDataProvider.js # Synthetic data across 5 execution states
-│   ├── state/
-│   │   └── store.js            # Central reactive state manager
-│   ├── components/
-│   │   ├── Header.js
-│   │   ├── ExecutionHeader.js
-│   │   ├── StateSelector.js
-│   │   ├── MetricsGrid.js
-│   │   ├── Charts.js
-│   │   ├── ActivityPanel.js
-│   │   ├── GovernorPanel.js
-│   │   ├── HealthPanel.js
-│   │   ├── Timeline.js
-│   │   ├── RuntimeEngines.js
-│   │   ├── HistoryTable.js
-│   │   └── PolicyForm.js
-│   ├── pages/
-│   │   ├── ExecutionPage.js    # Execution / Information surface
-│   │   └── GovernancePage.js   # Governance / Policy surface
-│   └── styles/
-│       └── theme.css           # Obsidian dark theme and typography
-└── tests/
-    ├── viewmodels.test.js      # ViewModel contract validations
-    ├── dataprovider.test.js    # Mock provider state generation tests
-    ├── store.test.js           # Reactive store tests
-    ├── components.test.js      # Component markup & accessibility tests
-    └── integration.test.js     # Full simulated workflow lifecycle tests
-```
+### 3.1 Execution States
+1. `NORMAL`: Standard operation within policy parameters.
+2. `COST_PRESSURE`: Cost approaching budget pacing boundary (automated optimization engaged).
+3. `RUNAWAY`: Recursive loop or anomalous token surge detected (circuit breaker halt).
+4. `QUALITY_DEGRADED`: Output drift or schema validation failures (model tier escalation).
+5. `PROVIDER_CONSTRAINED`: Provider rate limits (HTTP 429) or high latency (dynamic route switching).
+
+### 3.2 Governor Actions
+1. `CONTINUE`: Standard unthrottled execution.
+2. `OPTIMIZE`: Context compression & semantic caching.
+3. `ESCALATE`: Model tier elevation.
+4. `DOWNGRADE`: Route to lower-cost tier for subsequent steps.
+5. `SWITCH`: Failover to backup provider.
+6. `THROTTLE`: Rate-limit request pacing.
+7. `STOP`: Hard circuit-breaker termination.
 
 ---
 
-## 4. Theme & Accessibility
+## 4. Multi-Agent History Database in Mock Layer
 
-* **Design System:** Obsidian (`#101419` surface, `#adc6ff` cobalt accent, `#1c2025` container).
-* **Typography:** `Hanken Grotesk` for headers/titles; `Geist` for body, tabular telemetry numbers, and code tokens.
-* **Accessibility:** All actionable buttons and inputs feature semantic ARIA labels, keyboard focus indicators, and non-color-only state badges.
-* **Responsiveness:** Fluid 12-column desktop layout collapsing to 4-column priority cards on mobile viewports.
+The mock layer provides multi-agent historical telemetry covering:
+* **Agents:** `OpenCode`, `Claude Code`, `Codex`, `Hermes`, `OpenClaw`, `Lovable`.
+* **Providers:** `Anthropic`, `OpenAI`, `Google Gemini`, `DeepSeek`.
+* **Multi-filter capabilities:** Client-side real-time text query, state filtering, and agent filtering with instant view switching.

@@ -1,8 +1,8 @@
 /**
- * Mock Data Provider for INFUSE Frontend.
+ * Mock Data Provider for INFUSE Frontend (Hardened Baseline).
  * 
- * Provides synthetic ViewModels across execution states, metric timelines,
- * and governance policies without connecting to live backends.
+ * Provides synthetic ViewModels across all 5 execution states, 7 Governor actions,
+ * metric time-series, multi-agent historical runs, and governance policies.
  */
 
 import { IDataProvider } from "./IDataProvider.js";
@@ -26,22 +26,122 @@ export class MockDataProvider extends IDataProvider {
     this.currentState = ExecutionState.COST_PRESSURE;
     this.activeExecutionId = "exec_01J8K7A2";
     this.policy = new GovernancePolicyViewModel();
+    this.historyDatabase = this._initHistoryDatabase();
+  }
+
+  _initHistoryDatabase() {
+    return [
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8K7A2",
+        agent_name: "OpenCode",
+        task_preview: "Refactor authentication middleware to use decoupled JWT validators",
+        provider: "Anthropic",
+        model: "Claude Sonnet",
+        status: "RUNNING",
+        state: ExecutionState.COST_PRESSURE,
+        total_tokens: 69480,
+        cost_usd: 0.184,
+        runtime_formatted: "08m 42s",
+        created_at: "2026-09-21T14:32:18Z"
+      }),
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8J691",
+        agent_name: "Claude Code",
+        task_preview: "Generate OpenAPI 3.1 Swagger specification from FastAPI endpoints",
+        provider: "Anthropic",
+        model: "Claude Haiku",
+        status: "COMPLETED",
+        state: ExecutionState.NORMAL,
+        total_tokens: 18450,
+        cost_usd: 0.024,
+        runtime_formatted: "02m 14s",
+        created_at: "2026-09-21T13:10:04Z"
+      }),
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8H432",
+        agent_name: "Codex",
+        task_preview: "Database migration for multi-tenant customer isolation schema",
+        provider: "DeepSeek",
+        model: "DeepSeek Chat",
+        status: "COMPLETED",
+        state: ExecutionState.NORMAL,
+        total_tokens: 42100,
+        cost_usd: 0.012,
+        runtime_formatted: "04m 50s",
+        created_at: "2026-09-21T11:45:30Z"
+      }),
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8G219",
+        agent_name: "OpenCode",
+        task_preview: "Fix memory leak in websocket event loop during rapid disconnects",
+        provider: "OpenAI",
+        model: "GPT-4o",
+        status: "STOPPED",
+        state: ExecutionState.RUNAWAY,
+        total_tokens: 145000,
+        cost_usd: 0.950,
+        runtime_formatted: "12m 08s",
+        created_at: "2026-09-21T09:12:15Z"
+      }),
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8F104",
+        agent_name: "Hermes",
+        task_preview: "Synthesize quarterly AI infrastructure spend report across 4 clouds",
+        provider: "Google Gemini",
+        model: "Gemini 1.5 Pro",
+        status: "COMPLETED",
+        state: ExecutionState.NORMAL,
+        total_tokens: 88400,
+        cost_usd: 0.115,
+        runtime_formatted: "06m 30s",
+        created_at: "2026-09-21T07:40:00Z"
+      }),
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8E095",
+        agent_name: "OpenClaw",
+        task_preview: "Deep web verification of vendor security compliance certificates",
+        provider: "DeepSeek",
+        model: "DeepSeek Chat",
+        status: "COMPLETED",
+        state: ExecutionState.PROVIDER_CONSTRAINED,
+        total_tokens: 54200,
+        cost_usd: 0.038,
+        runtime_formatted: "05m 12s",
+        created_at: "2026-09-21T06:15:22Z"
+      }),
+      new ExecutionHistoryItemViewModel({
+        execution_id: "exec_01J8D980",
+        agent_name: "Lovable",
+        task_preview: "Generate accessible design tokens for high-contrast dark theme",
+        provider: "Anthropic",
+        model: "Claude Sonnet",
+        status: "COMPLETED",
+        state: ExecutionState.NORMAL,
+        total_tokens: 31200,
+        cost_usd: 0.078,
+        runtime_formatted: "03m 45s",
+        created_at: "2026-09-21T04:20:10Z"
+      })
+    ];
   }
 
   async getExecutionData(executionId = this.activeExecutionId) {
+    this.activeExecutionId = executionId;
+    const historyItem = this.historyDatabase.find(h => h.execution_id === executionId) || this.historyDatabase[0];
+
     const summary = new ExecutionSummaryViewModel({
-      execution_id: executionId,
-      agent_name: "OpenCode",
-      task_description: "Refactor authentication middleware to use decoupled JWT validators",
-      status: "RUNNING",
-      is_live: true,
-      provider: "Anthropic",
-      model: "Claude Sonnet",
+      execution_id: historyItem.execution_id,
+      agent_name: historyItem.agent_name,
+      task_description: historyItem.task_preview,
+      status: historyItem.status,
+      is_live: historyItem.status === "RUNNING",
+      provider: historyItem.provider,
+      model: historyItem.model,
       routing_mode: "Auto-Governor v2",
       isolation_pool: "eu-central-sandbox",
-      started_at: "2026-09-21T14:32:18Z",
+      started_at: historyItem.created_at,
       runtime_seconds: 522,
-      formatted_runtime: "08m 42s"
+      formatted_runtime: historyItem.runtime_formatted
     });
 
     const stateProfiles = {
@@ -81,7 +181,7 @@ export class MockDataProvider extends IDataProvider {
       },
       [ExecutionState.RUNAWAY]: {
         display: "RUNAWAY",
-        desc: "Anomalous recursive tool call loop detected without progress. Circuit breaker triggered.",
+        desc: "Anomalous recursive tool call loop detected without convergence. Circuit breaker triggered.",
         action: GovernorAction.STOP,
         bannerTitle: "Active Regulation: Circuit-Breaker Halt",
         bannerDesc: "Execution forcibly halted due to infinite tool recursion limit breach.",
@@ -185,8 +285,8 @@ export class MockDataProvider extends IDataProvider {
     });
 
     const health = new ProviderModelHealthViewModel({
-      provider: "Anthropic",
-      model: "Claude Sonnet",
+      provider: summary.provider,
+      model: summary.model,
       latency_ms: this.currentState === ExecutionState.PROVIDER_CONSTRAINED ? 2450.0 : 680.0,
       availability_percent: this.currentState === ExecutionState.PROVIDER_CONSTRAINED ? 92.4 : 99.95,
       error_rate_percent: this.currentState === ExecutionState.PROVIDER_CONSTRAINED ? 7.6 : 0.05,
@@ -252,62 +352,7 @@ export class MockDataProvider extends IDataProvider {
         time_offset: "+00:00",
         event_type: EventType.EXECUTION_STARTED,
         title: "Execution Started",
-        description: "Agent OpenCode initialized execution exec_01J8K7A2"
-      })
-    ];
-
-    const history = [
-      new ExecutionHistoryItemViewModel({
-        execution_id: "exec_01J8K7A2",
-        agent_name: "OpenCode",
-        task_preview: "Refactor authentication middleware",
-        provider: "Anthropic",
-        model: "Claude Sonnet",
-        status: "RUNNING",
-        state: this.currentState,
-        total_tokens: currentProfile.tokensTotal,
-        cost_usd: currentProfile.cost,
-        runtime_formatted: "08m 42s",
-        created_at: "2026-09-21T14:32:18Z"
-      }),
-      new ExecutionHistoryItemViewModel({
-        execution_id: "exec_01J8J691",
-        agent_name: "Claude Code",
-        task_preview: "Generate OpenAPI 3.1 Swagger specification",
-        provider: "Anthropic",
-        model: "Claude Haiku",
-        status: "COMPLETED",
-        state: ExecutionState.NORMAL,
-        total_tokens: 18450,
-        cost_usd: 0.024,
-        runtime_formatted: "02m 14s",
-        created_at: "2026-09-21T13:10:04Z"
-      }),
-      new ExecutionHistoryItemViewModel({
-        execution_id: "exec_01J8H432",
-        agent_name: "Codex",
-        task_preview: "Database migration for user tenancy schema",
-        provider: "DeepSeek",
-        model: "DeepSeek Chat",
-        status: "COMPLETED",
-        state: ExecutionState.NORMAL,
-        total_tokens: 42100,
-        cost_usd: 0.012,
-        runtime_formatted: "04m 50s",
-        created_at: "2026-09-21T11:45:30Z"
-      }),
-      new ExecutionHistoryItemViewModel({
-        execution_id: "exec_01J8G219",
-        agent_name: "OpenCode",
-        task_preview: "Fix memory leak in websocket event loop",
-        provider: "OpenAI",
-        model: "GPT-4o",
-        status: "STOPPED",
-        state: ExecutionState.RUNAWAY,
-        total_tokens: 145000,
-        cost_usd: 0.950,
-        runtime_formatted: "12m 08s",
-        created_at: "2026-09-21T09:12:15Z"
+        description: `Agent ${summary.agent_name} initialized execution ${summary.execution_id}`
       })
     ];
 
@@ -318,7 +363,7 @@ export class MockDataProvider extends IDataProvider {
       governor,
       health,
       timeline,
-      history
+      history: this.historyDatabase
     };
   }
 
