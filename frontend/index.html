@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html class="dark" data-theme="dark" lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" name="viewport"/>
+  <title>INFUSE — Execution Intelligence Console</title>
+  
+  <!-- Typography -->
+  <link href="https://fonts.googleapis.com" rel="preconnect"/>
+  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Hanken+Grotesk:wght@500;600;700&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet"/>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            'surface': '#101419',
+            'surface-dim': '#101419',
+            'surface-bright': '#36393f',
+            'surface-container-lowest': '#0a0e13',
+            'surface-container-low': '#181c21',
+            'surface-container': '#1c2025',
+            'surface-container-high': '#262a30',
+            'surface-container-highest': '#31353b',
+            'on-surface': '#e0e2ea',
+            'on-surface-variant': '#c2c6d6',
+            'inverse-surface': '#e0e2ea',
+            'inverse-on-surface': '#2d3136',
+            'outline': '#8c909f',
+            'outline-variant': '#424754',
+            'surface-tint': '#adc6ff',
+            'primary': '#adc6ff',
+            'on-primary': '#002e6a',
+            'primary-container': '#4d8eff',
+            'on-primary-container': '#00285d',
+            'inverse-primary': '#005ac2',
+            'secondary': '#d0bcff',
+            'on-secondary': '#3c0091',
+            'secondary-container': '#571bc1',
+            'on-secondary-container': '#c4abff',
+            'tertiary': '#ffb786',
+            'on-tertiary': '#502400',
+            'tertiary-container': '#df7412',
+            'on-tertiary-container': '#461f00',
+            'error': '#ffb4ab',
+            'on-error': '#690005',
+            'error-container': '#93000a',
+            'on-error-container': '#ffdad6',
+            'background': '#101419',
+            'on-background': '#e0e2ea',
+            'surface-variant': '#31353b'
+          },
+          fontFamily: {
+            'display': ['Hanken Grotesk', 'sans-serif'],
+            'headline-lg': ['Hanken Grotesk', 'sans-serif'],
+            'headline-lg-mobile': ['Hanken Grotesk', 'sans-serif'],
+            'headline-md': ['Hanken Grotesk', 'sans-serif'],
+            'headline-sm': ['Hanken Grotesk', 'sans-serif'],
+            'title-md': ['Hanken Grotesk', 'sans-serif'],
+            'body-lg': ['Geist', 'sans-serif'],
+            'body-md': ['Geist', 'sans-serif'],
+            'body-sm': ['Geist', 'sans-serif'],
+            'label-md': ['Geist', 'sans-serif'],
+            'label-sm': ['Geist', 'sans-serif'],
+            'code-sm': ['Geist', 'monospace']
+          },
+          fontSize: {
+            'display': ['2.5rem', { lineHeight: '3rem', letterSpacing: '-0.03em', fontWeight: '600' }],
+            'headline-lg': ['2rem', { lineHeight: '2.5rem', letterSpacing: '-0.025em', fontWeight: '600' }],
+            'headline-lg-mobile': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.02em', fontWeight: '600' }],
+            'headline-md': ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.02em', fontWeight: '500' }],
+            'headline-sm': ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.015em', fontWeight: '500' }],
+            'title-md': ['1rem', { lineHeight: '1.5rem', letterSpacing: '-0.01em', fontWeight: '600' }],
+            'body-lg': ['1rem', { lineHeight: '1.5rem', letterSpacing: '-0.01em', fontWeight: '400' }],
+            'body-md': ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '-0.005em', fontWeight: '400' }],
+            'body-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0em', fontWeight: '400' }],
+            'label-md': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0.02em', fontWeight: '500' }],
+            'label-sm': ['0.6875rem', { lineHeight: '0.875rem', letterSpacing: '0.04em', fontWeight: '500' }],
+            'code-sm': ['0.75rem', { lineHeight: '1rem', letterSpacing: '0em', fontWeight: '400' }]
+          }
+        }
+      }
+    };
+  </script>
+  
+  <link rel="stylesheet" href="./src/styles/theme.css"/>
+</head>
+<body class="bg-surface font-body-md text-on-surface antialiased">
+  <div id="app" class="min-h-screen flex flex-col">
+    <!-- Rendered by InfuseApp -->
+  </div>
+
+  <!-- Entry Script -->
+  <script type="module">
+    import { InfuseApp } from './src/app.js';
+    const root = document.getElementById('app');
+    const app = new InfuseApp(root);
+    app.init();
+  </script>
+</body>
+</html>

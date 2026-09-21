@@ -1,0 +1,52 @@
+/**
+ * Autonomous Governance Obsidian Theme Styles.
+ */
+
+@layer base {
+  html, body {
+    width: 100vw;
+    margin: 0;
+    padding: 0;
+    background-color: #101419;
+    color: #e0e2ea;
+  }
+  body {
+    overscroll-behavior: none;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+  main > :first-child {
+    margin-top: 0 !important;
+  }
+  main > :last-child {
+    margin-bottom: 0 !important;
+  }
+}
+
+/* Tabular lining figures for numbers, counters, and telemetry */
+.font-code-sm,
+.tabular-nums,
+[data-tabular="true"] {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Scrollbar clean styling */
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
+}
+
+/* Inversion theme handler matching Stitch baseline */
+html[data-theme="light"] {
+  filter: invert(1) hue-rotate(180deg);
+}
+html[data-theme="light"] img {
+  filter: invert(1) hue-rotate(180deg);
+}

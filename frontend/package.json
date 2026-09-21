@@ -1,0 +1,18 @@
+{
+  "name": "infuse-frontend",
+  "version": "0.1.0",
+  "description": "INFUSE — Execution Intelligence: Governance & Execution Control Console",
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/**/*.test.js",
+    "start": "npx serve . -p 3000"
+  },
+  "keywords": [
+    "infuse",
+    "execution-intelligence",
+    "governance",
+    "agent-regulation"
+  ],
+  "author": "INFUSE Open Source Community",
+  "license": "Apache-2.0"
+}
