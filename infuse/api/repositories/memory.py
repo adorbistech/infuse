@@ -117,11 +117,12 @@ class InMemoryExecutionRepository(IExecutionRepository):
 
 
 class InMemoryPolicyRepository(IPolicyRepository):
-    """Deterministic in-memory implementation of IPolicyRepository."""
+    """Deterministic in-memory implementation of IPolicyRepository supporting revision history and immutability."""
 
     def __init__(self, seed_defaults: bool = True) -> None:
         self._policies: Dict[str, GovernancePolicy] = {}
-        self._active_id: Optional[str] = None
+        self._revisions: Dict[str, List[GovernancePolicy]] = {}
+        self._active_key: Optional[tuple[str, str]] = None
         if seed_defaults:
             self._seed_default_data()
 
@@ -135,21 +136,103 @@ class InMemoryPolicyRepository(IPolicyRepository):
         self.save(default_policy)
 
     def get_active(self) -> Optional[GovernancePolicy]:
-        if self._active_id and self._active_id in self._policies:
-            return self._policies[self._active_id]
+        if self._active_key:
+            pid, ver = self._active_key
+            for rev in self._revisions.get(pid, []):
+                if rev.version == ver and rev.is_active:
+                    return rev.model_copy(deep=True)
+
         for p in self._policies.values():
             if p.is_active:
-                return p
+                return p.model_copy(deep=True)
         return None
 
     def get_by_id(self, policy_id: str) -> Optional[GovernancePolicy]:
-        return self._policies.get(policy_id)
+        policy = self._policies.get(policy_id)
+        if policy:
+            return policy.model_copy(deep=True)
+        return None
+
+    def get_revision(self, policy_id: str, version: str) -> Optional[GovernancePolicy]:
+        for rev in self._revisions.get(policy_id, []):
+            if rev.version == version:
+                return rev.model_copy(deep=True)
+        return None
+
+    def get_history(self, policy_id: str) -> List[GovernancePolicy]:
+        return [rev.model_copy(deep=True) for rev in self._revisions.get(policy_id, [])]
 
     def save(self, policy: GovernancePolicy) -> GovernancePolicy:
-        self._policies[policy.policy_id] = policy
-        if policy.is_active:
-            self._active_id = policy.policy_id
-        return policy
+        # Clone to preserve immutable snapshot
+        snapshot = policy.model_copy(deep=True)
+        pid = snapshot.policy_id
 
-    def list_all(self) -> List[GovernancePolicy]:
-        return list(self._policies.values())
+        if pid not in self._revisions:
+            self._revisions[pid] = []
+
+        # If revision with this version already exists, replace it; otherwise append
+        existing_idx = None
+        for i, rev in enumerate(self._revisions[pid]):
+            if rev.version == snapshot.version:
+                existing_idx = i
+                break
+
+        if existing_idx is not None:
+            self._revisions[pid][existing_idx] = snapshot
+        else:
+            self._revisions[pid].append(snapshot)
+
+        self._policies[pid] = snapshot
+
+        if snapshot.is_active:
+            self._active_key = (pid, snapshot.version)
+            # Deactivate all other policies and revisions
+            for p_id, rev_list in self._revisions.items():
+                for rev in rev_list:
+                    if p_id != pid or rev.version != snapshot.version:
+                        rev.is_active = False
+            for p_id in self._policies:
+                if p_id != pid:
+                    self._policies[p_id].is_active = False
+
+        return snapshot.model_copy(deep=True)
+
+    def set_active(self, policy_id: str, version: Optional[str] = None) -> GovernancePolicy:
+        revisions = self._revisions.get(policy_id, [])
+        if not revisions:
+            raise KeyError(f"Policy '{policy_id}' not found.")
+
+        target: Optional[GovernancePolicy] = None
+        if version:
+            for rev in revisions:
+                if rev.version == version:
+                    target = rev
+                    break
+            if not target:
+                raise KeyError(f"Policy '{policy_id}' version '{version}' not found.")
+        else:
+            target = self._policies.get(policy_id) or revisions[-1]
+
+        target.is_active = True
+        self._active_key = (policy_id, target.version)
+        self._policies[policy_id] = target
+
+        # Deactivate all other revisions
+        for p_id, rev_list in self._revisions.items():
+            for rev in rev_list:
+                if p_id != policy_id or rev.version != target.version:
+                    rev.is_active = False
+        for p_id in self._policies:
+            if p_id != policy_id:
+                self._policies[p_id].is_active = False
+
+        return target.model_copy(deep=True)
+
+    def list_all(self, include_historical: bool = False) -> List[GovernancePolicy]:
+        if include_historical:
+            all_revs: List[GovernancePolicy] = []
+            for rev_list in self._revisions.values():
+                all_revs.extend([r.model_copy(deep=True) for r in rev_list])
+            return all_revs
+        return [p.model_copy(deep=True) for p in self._policies.values()]
+

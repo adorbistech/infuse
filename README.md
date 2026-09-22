@@ -26,6 +26,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 03 — Frontend Governance / Policy Surface Hardening:** `COMPLETE`
 * **Block 04 — Frontend Data & State Contract:** `COMPLETE`
 * **Block 05 — Universal HTTP API:** `COMPLETE`
+* **Block 06 — Policy Manager:** `COMPLETE`
 
 ---
 
@@ -34,6 +35,12 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── policy/               # Governance Policy Manager (Block 06)
+│   │   ├── manager.py        # Lifecycle, versioning & active policy authority
+│   │   ├── validation.py     # 10-section contract & range validation
+│   │   ├── normalization.py  # Deterministic normalization
+│   │   ├── interfaces.py     # IPolicyManager interface
+│   │   └── errors.py         # Policy domain exceptions
 │   ├── api/                  # Universal HTTP API Boundary (Block 05)
 │   │   ├── app.py            # Starlette application factory & middleware
 │   │   ├── errors.py         # Normalized error handling
@@ -62,12 +69,14 @@ infuse/
 │   └── tests/                # Frontend contract test suite (49 tests)
 ├── tests/
 │   ├── contracts/            # Python contract test suite (33 tests)
-│   └── api/                  # Python API test suite (25 tests)
+│   ├── api/                  # Python API test suite (25 tests)
+│   └── policy/               # Python Policy Manager test suite (26 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
 │       ├── frontend_integration_map.md # Frontend Architecture Map
-│       └── api_contract.md   # Universal HTTP API Specification
+│       ├── api_contract.md   # Universal HTTP API Specification
+│       └── policy_manager.md # Policy Manager Specification
 ├── ARCHITECTURE.md           # Architecture Baseline
 └── pyproject.toml
 ```

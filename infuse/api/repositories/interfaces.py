@@ -55,7 +55,7 @@ class IExecutionRepository(ABC):
 
 
 class IPolicyRepository(ABC):
-    """Abstract repository for storing and retrieving governance policies."""
+    """Abstract repository for storing and retrieving governance policies and revision history."""
 
     @abstractmethod
     def get_active(self) -> Optional[GovernancePolicy]:
@@ -64,15 +64,31 @@ class IPolicyRepository(ABC):
 
     @abstractmethod
     def get_by_id(self, policy_id: str) -> Optional[GovernancePolicy]:
-        """Retrieve a specific governance policy by ID."""
+        """Retrieve the latest revision of a governance policy by ID."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_revision(self, policy_id: str, version: str) -> Optional[GovernancePolicy]:
+        """Retrieve a specific historical revision of a policy by ID and version."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_history(self, policy_id: str) -> List[GovernancePolicy]:
+        """Retrieve all historical revisions for a policy in chronological order."""
         raise NotImplementedError
 
     @abstractmethod
     def save(self, policy: GovernancePolicy) -> GovernancePolicy:
-        """Persist or update a governance policy."""
+        """Persist a policy revision."""
         raise NotImplementedError
 
     @abstractmethod
-    def list_all(self) -> List[GovernancePolicy]:
-        """List all governance policy revisions."""
+    def set_active(self, policy_id: str, version: Optional[str] = None) -> GovernancePolicy:
+        """Designate a specific policy revision as active."""
         raise NotImplementedError
+
+    @abstractmethod
+    def list_all(self, include_historical: bool = False) -> List[GovernancePolicy]:
+        """List policies, optionally including historical revisions."""
+        raise NotImplementedError
+

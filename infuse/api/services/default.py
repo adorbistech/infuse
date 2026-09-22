@@ -3,7 +3,7 @@
 import uuid
 from typing import Any, Dict, List, Optional
 
-from infuse.api.errors import NotFoundError
+from infuse.api.errors import ConflictError, NotFoundError, RequestValidationError
 from infuse.api.repositories.interfaces import IExecutionRepository, IPolicyRepository
 from infuse.api.repositories.memory import InMemoryExecutionRepository, InMemoryPolicyRepository
 from infuse.api.services.interfaces import (
@@ -22,6 +22,9 @@ from infuse.contracts.execution import (
 from infuse.contracts.governor import GovernorAction, GovernorDecision
 from infuse.contracts.policy import GovernancePolicy
 from infuse.contracts.state import ExecutionState
+from infuse.policy.errors import PolicyConflictError, PolicyNotFoundError, PolicyValidationError
+from infuse.policy.interfaces import IPolicyManager
+from infuse.policy.manager import PolicyManager
 from infuse.version import SCHEMA_VERSION
 
 
@@ -115,23 +118,36 @@ class DefaultEventService(IEventService):
             raise NotFoundError(f"Execution with ID '{execution_id}' does not exist.")
         return self.repository.get_events(execution_id)
 
-
 class DefaultPolicyService(IPolicyService):
-    """Default governance policy service."""
+    """Default governance policy service backed by PolicyManager."""
 
-    def __init__(self, repository: Optional[IPolicyRepository] = None) -> None:
+    def __init__(
+        self,
+        repository: Optional[IPolicyRepository] = None,
+        policy_manager: Optional[IPolicyManager] = None
+    ) -> None:
         self.repository = repository or InMemoryPolicyRepository()
+        self.manager = policy_manager or PolicyManager(repository=self.repository)
 
     def get_active_policy(self) -> Optional[GovernancePolicy]:
-        return self.repository.get_active()
+        return self.manager.get_active_policy()
 
     def get_policy(self, policy_id: str) -> Optional[GovernancePolicy]:
-        return self.repository.get_by_id(policy_id)
+        return self.manager.get_policy(policy_id)
 
     def list_policies(self) -> List[GovernancePolicy]:
-        return self.repository.list_all()
+        return self.manager.list_policies()
 
     def update_policy(self, policy_id: str, policy: GovernancePolicy) -> GovernancePolicy:
-        if policy.policy_id != policy_id:
-            policy = policy.model_copy(update={"policy_id": policy_id})
-        return self.repository.save(policy)
+        try:
+            return self.manager.update_policy(policy_id, policy)
+        except PolicyValidationError as exc:
+            raise RequestValidationError(
+                message=exc.message,
+                details=exc.details
+            ) from exc
+        except PolicyNotFoundError as exc:
+            raise NotFoundError(str(exc)) from exc
+        except PolicyConflictError as exc:
+            raise ConflictError(str(exc)) from exc
+
