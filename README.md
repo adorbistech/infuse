@@ -30,6 +30,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 07 — Execution Context:** `COMPLETE`
 * **Block 08 — Workload Classifier:** `COMPLETE`
 * **Block 09 — Provider & Model Registry:** `COMPLETE`
+* **Block 10 — Capability Resolver:** `COMPLETE`
 
 ---
 
@@ -38,6 +39,12 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── resolver/             # Capability Resolver (Block 10)
+│   │   ├── models.py         # Canonical CapabilityResolutionResult, requirements & targets
+│   │   ├── interfaces.py     # ICapabilityResolver interface
+│   │   ├── resolver.py       # CapabilityResolver implementation
+│   │   ├── service.py        # CapabilityResolverService boundary
+│   │   └── errors.py         # Domain resolver exceptions
 │   ├── registry/             # Provider & Model Registry (Block 09)
 │   │   ├── models.py         # Canonical ProviderRecord, ModelRecord & declarations
 │   │   ├── validation.py     # Structural & credential validation
@@ -100,7 +107,8 @@ infuse/
 │   ├── policy/               # Python Policy Manager test suite (26 tests)
 │   ├── context/              # Python Execution Context test suite (20 tests)
 │   ├── classifier/           # Python Workload Classifier test suite (15 tests)
-│   └── registry/             # Python Provider & Model Registry test suite (19 tests)
+│   ├── registry/             # Python Provider & Model Registry test suite (19 tests)
+│   └── resolver/             # Python Capability Resolver test suite (16 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
