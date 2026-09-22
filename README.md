@@ -31,6 +31,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 08 — Workload Classifier:** `COMPLETE`
 * **Block 09 — Provider & Model Registry:** `COMPLETE`
 * **Block 10 — Capability Resolver:** `COMPLETE`
+* **Block 11 — Router:** `COMPLETE`
 
 ---
 
@@ -39,6 +40,12 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── router/               # Deterministic Router (Block 11)
+│   │   ├── models.py         # Canonical RouteDecision, RouteTarget, RoutingStrategy & evidence
+│   │   ├── interfaces.py     # IRouter interface
+│   │   ├── router.py         # DeterministicRouter implementation
+│   │   ├── service.py        # RouterService boundary
+│   │   └── errors.py         # Domain router exceptions
 │   ├── resolver/             # Capability Resolver (Block 10)
 │   │   ├── models.py         # Canonical CapabilityResolutionResult, requirements & targets
 │   │   ├── interfaces.py     # ICapabilityResolver interface
@@ -108,7 +115,8 @@ infuse/
 │   ├── context/              # Python Execution Context test suite (20 tests)
 │   ├── classifier/           # Python Workload Classifier test suite (15 tests)
 │   ├── registry/             # Python Provider & Model Registry test suite (19 tests)
-│   └── resolver/             # Python Capability Resolver test suite (16 tests)
+│   ├── resolver/             # Python Capability Resolver test suite (16 tests)
+│   └── router/               # Python Deterministic Router test suite (15 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
