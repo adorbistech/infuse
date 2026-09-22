@@ -41,11 +41,29 @@ export const EventType = Object.freeze({
   WEB_REQUEST: "WebRequest",
   WEB_RESPONSE: "WebResponse",
   RETRY_STARTED: "RetryStarted",
-  PROVIDER_ERROR: "ProviderError",
-  STATE_CHANGED: "StateChanged",
   GOVERNOR_DECISION: "GovernorDecision",
   CONTROL_ACTION_ISSUED: "ControlActionIssued"
 });
+
+export const DataStatus = Object.freeze({
+  IDLE: "IDLE",
+  LOADING: "LOADING",
+  LOADED: "LOADED",
+  EMPTY: "EMPTY",
+  ERROR: "ERROR"
+});
+
+/**
+ * Normalized application error representation for frontend UI state.
+ */
+export class AppError {
+  constructor(message, code = "UNKNOWN_ERROR", details = null) {
+    this.message = message || "An unexpected error occurred.";
+    this.code = code;
+    this.details = details;
+    this.timestamp = new Date().toISOString();
+  }
+}
 
 /**
  * Top Execution context card ViewModel.
@@ -165,6 +183,25 @@ export class ExecutionHistoryItemViewModel {
     this.cost_usd = data.cost_usd || 0.0;
     this.runtime_formatted = data.runtime_formatted || "00m 00s";
     this.created_at = data.created_at || new Date().toISOString();
+  }
+}
+
+/**
+ * Normalized container ViewModel bundling complete execution telemetry for a single run.
+ */
+export class ExecutionBundleViewModel {
+  constructor(data = {}) {
+    this.summary = data.summary instanceof ExecutionSummaryViewModel ? data.summary : new ExecutionSummaryViewModel(data.summary || {});
+    this.metrics = data.metrics instanceof ExecutionMetricsViewModel ? data.metrics : new ExecutionMetricsViewModel(data.metrics || {});
+    this.state = data.state instanceof ExecutionStateViewModel ? data.state : new ExecutionStateViewModel(data.state || {});
+    this.governor = data.governor instanceof GovernorDecisionViewModel ? data.governor : new GovernorDecisionViewModel(data.governor || {});
+    this.health = data.health instanceof ProviderModelHealthViewModel ? data.health : new ProviderModelHealthViewModel(data.health || {});
+    this.timeline = Array.isArray(data.timeline) 
+      ? data.timeline.map(t => t instanceof ExecutionTimelineEventViewModel ? t : new ExecutionTimelineEventViewModel(t))
+      : [];
+    this.history = Array.isArray(data.history)
+      ? data.history.map(h => h instanceof ExecutionHistoryItemViewModel ? h : new ExecutionHistoryItemViewModel(h))
+      : [];
   }
 }
 

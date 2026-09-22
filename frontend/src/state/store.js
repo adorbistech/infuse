@@ -1,31 +1,48 @@
 /**
  * Central Reactive Store for INFUSE Frontend (Hardened).
  * 
- * Manages UI state, selected routes, active view models, filters, theme, policy editing lifecycle, and subscribers.
+ * Formalizes explicit state separation:
+ * 1. UI State (route, theme, activeEngineTab, executionId)
+ * 2. Server-Derived Data State (executionData, policyData)
+ * 3. Draft State (originalPolicyData, hasUnsavedChanges, draft revisions)
+ * 4. Transient / Interaction State (status, historyFilter, policyFeedback, error)
  */
 
 import { MockDataProvider } from "../data/MockDataProvider.js";
-import { validateGovernancePolicy, GovernancePolicyViewModel } from "../contracts/viewmodels.js";
+import {
+  validateGovernancePolicy,
+  GovernancePolicyViewModel,
+  DataStatus,
+  AppError
+} from "../contracts/viewmodels.js";
 
 export class Store {
   constructor(dataProvider = new MockDataProvider()) {
     this.dataProvider = dataProvider;
     this.state = {
+      // 1. UI State
       route: "execution", // "execution" | "governance"
-      theme: "dark",
-      executionId: "exec_01J8K7A2",
+      theme: "dark",      // "dark" | "light"
       activeEngineTab: "token", // "token" | "economics" | "health" | "governor"
+      executionId: "exec_01J8K7A2",
+
+      // 2. Server-Derived Data State
+      executionData: null,
+      policyData: null,
+
+      // 3. Draft State (Isolated from Server-Derived Baseline)
+      originalPolicyData: null,
+
+      // 4. Transient / Interaction State
+      status: DataStatus.IDLE, // IDLE | LOADING | LOADED | EMPTY | ERROR
+      isLoading: false,
       historyFilter: {
         query: "",
         state: "ALL",
         agent: "ALL"
       },
-      executionData: null,
-      policyData: null,
-      originalPolicyData: null,
       policyFeedback: null, // { type: "success" | "error" | "info", message: string }
-      isLoading: false,
-      error: null
+      error: null           // AppError | null
     };
     this.subscribers = new Set();
   }
@@ -67,15 +84,29 @@ export class Store {
     this.notify();
   }
 
+  clearError() {
+    this.state.error = null;
+    this.notify();
+  }
+
   async loadExecutionData(executionId = this.state.executionId) {
     this.state.isLoading = true;
+    this.state.status = DataStatus.LOADING;
     this.state.executionId = executionId;
     this.notify();
     try {
-      this.state.executionData = await this.dataProvider.getExecutionData(executionId);
+      const result = await this.dataProvider.getExecutionData(executionId);
+      if (!result) {
+        this.state.executionData = null;
+        this.state.status = DataStatus.EMPTY;
+      } else {
+        this.state.executionData = result;
+        this.state.status = DataStatus.LOADED;
+      }
       this.state.error = null;
     } catch (err) {
-      this.state.error = err.message || "Failed to load execution data";
+      this.state.status = DataStatus.ERROR;
+      this.state.error = err instanceof AppError ? err : new AppError(err.message || "Failed to load execution data", "FETCH_FAILED");
     } finally {
       this.state.isLoading = false;
       this.notify();
@@ -84,13 +115,22 @@ export class Store {
 
   async loadPolicyData() {
     this.state.isLoading = true;
+    this.state.status = DataStatus.LOADING;
     this.notify();
     try {
-      this.state.policyData = await this.dataProvider.getGovernancePolicy();
-      this.state.originalPolicyData = JSON.parse(JSON.stringify(this.state.policyData.policy || {}));
+      const policyResult = await this.dataProvider.getGovernancePolicy();
+      if (!policyResult) {
+        this.state.policyData = null;
+        this.state.status = DataStatus.EMPTY;
+      } else {
+        this.state.policyData = policyResult;
+        this.state.originalPolicyData = JSON.parse(JSON.stringify(this.state.policyData.policy || {}));
+        this.state.status = DataStatus.LOADED;
+      }
       this.state.error = null;
     } catch (err) {
-      this.state.error = err.message || "Failed to load governance policy";
+      this.state.status = DataStatus.ERROR;
+      this.state.error = err instanceof AppError ? err : new AppError(err.message || "Failed to load governance policy", "POLICY_FETCH_FAILED");
     } finally {
       this.state.isLoading = false;
       this.notify();
@@ -99,12 +139,15 @@ export class Store {
 
   async updateStateSimulation(targetState) {
     this.state.isLoading = true;
+    this.state.status = DataStatus.LOADING;
     this.notify();
     try {
       this.state.executionData = await this.dataProvider.triggerStateChange(this.state.executionId, targetState);
+      this.state.status = DataStatus.LOADED;
       this.state.error = null;
     } catch (err) {
-      this.state.error = err.message || "Failed to change state";
+      this.state.status = DataStatus.ERROR;
+      this.state.error = err instanceof AppError ? err : new AppError(err.message || "Failed to change state", "SIMULATION_FAILED");
     } finally {
       this.state.isLoading = false;
       this.notify();
@@ -207,6 +250,7 @@ export class Store {
     }
 
     this.state.isLoading = true;
+    this.state.status = DataStatus.LOADING;
     this.notify();
     try {
       this.state.policyData = await this.dataProvider.saveGovernancePolicy(updatedPolicy);
@@ -217,16 +261,26 @@ export class Store {
         type: "success",
         message: `Policy '${this.state.policyData.policy.name}' (${this.state.policyData.policy.version}) saved successfully.`
       };
+      this.state.status = DataStatus.LOADED;
       this.state.error = null;
     } catch (err) {
-      this.state.error = err.message || "Failed to save policy";
+      this.state.status = DataStatus.ERROR;
+      const appErr = err instanceof AppError ? err : new AppError(err.message || "Failed to save policy", "POLICY_SAVE_FAILED");
+      this.state.error = appErr;
       this.state.policyFeedback = {
         type: "error",
-        message: this.state.error
+        message: appErr.message
       };
     } finally {
       this.state.isLoading = false;
       this.notify();
     }
+  }
+
+  async retryLastAction() {
+    if (this.state.route === "governance") {
+      return this.loadPolicyData();
+    }
+    return this.loadExecutionData(this.state.executionId);
   }
 }

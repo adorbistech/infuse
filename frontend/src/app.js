@@ -143,6 +143,25 @@ export class InfuseApp {
         this.store.clearPolicyFeedback();
         return;
       }
+
+      // Retry & recovery buttons
+      const retryExecBtn = e.target.closest("#retry-exec-btn");
+      if (retryExecBtn) {
+        this.store.loadExecutionData(this.store.state.executionId || "exec_01J8K7A2");
+        return;
+      }
+
+      const retryGovBtn = e.target.closest("#retry-gov-btn");
+      if (retryGovBtn) {
+        this.store.loadPolicyData();
+        return;
+      }
+
+      const loadDefaultExecBtn = e.target.closest("#load-default-exec-btn");
+      if (loadDefaultExecBtn) {
+        this.store.loadExecutionData("exec_01J8K7A2");
+        return;
+      }
     });
 
     // Global change delegation for selects, checkboxes, and filters

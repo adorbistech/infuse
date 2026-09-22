@@ -14,10 +14,12 @@ import {
   ProviderModelHealthViewModel,
   ExecutionTimelineEventViewModel,
   ExecutionHistoryItemViewModel,
+  ExecutionBundleViewModel,
   GovernancePolicyViewModel,
   ExecutionState,
   GovernorAction,
-  EventType
+  EventType,
+  AppError
 } from "../contracts/viewmodels.js";
 
 export class MockDataProvider extends IDataProvider {
@@ -126,7 +128,16 @@ export class MockDataProvider extends IDataProvider {
   }
 
   async getExecutionData(executionId = this.activeExecutionId) {
+    // Simulated test scenarios
+    if (executionId === "exec_error") {
+      throw new AppError(`Failed to fetch execution telemetry for '${executionId}'.`, "EXECUTION_NOT_FOUND", { executionId });
+    }
+    if (executionId === "exec_empty") {
+      return null;
+    }
+
     this.activeExecutionId = executionId;
+
     const historyItem = this.historyDatabase.find(h => h.execution_id === executionId) || this.historyDatabase[0];
 
     const summary = new ExecutionSummaryViewModel({
@@ -356,7 +367,7 @@ export class MockDataProvider extends IDataProvider {
       })
     ];
 
-    return {
+    return new ExecutionBundleViewModel({
       summary,
       metrics,
       state,
@@ -364,7 +375,29 @@ export class MockDataProvider extends IDataProvider {
       health,
       timeline,
       history: this.historyDatabase
-    };
+    });
+  }
+
+  /**
+   * Filter and retrieve execution history.
+   */
+  async getExecutionHistory(filter = {}) {
+    let results = [...this.historyDatabase];
+    if (filter.query) {
+      const q = filter.query.toLowerCase();
+      results = results.filter(
+        item => item.task_preview.toLowerCase().includes(q) ||
+                item.agent_name.toLowerCase().includes(q) ||
+                item.execution_id.toLowerCase().includes(q)
+      );
+    }
+    if (filter.state && filter.state !== "ALL") {
+      results = results.filter(item => item.state === filter.state);
+    }
+    if (filter.agent && filter.agent !== "ALL") {
+      results = results.filter(item => item.agent_name === filter.agent);
+    }
+    return results;
   }
 
   async getGovernancePolicy() {
