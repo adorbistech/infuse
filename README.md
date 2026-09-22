@@ -21,14 +21,11 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ## Milestone Status
 
 * **Block 00 — Architecture & Contracts Freeze:** `COMPLETE`
-  * Universal Execution Contract
-  * Execution Event Contract
-  * Governance Policy Contract
-  * Execution Control Boundary Contract
-  * Governor Action Contract
-  * Execution State Contract
-  * Frontend ViewModel Contract
-  * Adapter Capability Contract
+* **Block 01 — Frontend Foundation & Contract Integration:** `COMPLETE`
+* **Block 02 — Frontend Execution / Information Surface Hardening:** `COMPLETE`
+* **Block 03 — Frontend Governance / Policy Surface Hardening:** `COMPLETE`
+* **Block 04 — Frontend Data & State Contract:** `COMPLETE`
+* **Block 05 — Universal HTTP API:** `COMPLETE`
 
 ---
 
@@ -37,7 +34,14 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
-│   ├── contracts/            # Versioned Universal Contracts
+│   ├── api/                  # Universal HTTP API Boundary (Block 05)
+│   │   ├── app.py            # Starlette application factory & middleware
+│   │   ├── errors.py         # Normalized error handling
+│   │   ├── routes/           # /v1 routes (execute, executions, policies, health)
+│   │   ├── services/         # Decoupled service interfaces
+│   │   ├── repositories/     # In-memory repository boundary
+│   │   └── schemas/          # Transport schemas
+│   ├── contracts/            # Versioned Universal Contracts (Block 00)
 │   │   ├── common.py
 │   │   ├── execution.py
 │   │   ├── events.py
@@ -48,11 +52,22 @@ infuse/
 │   │   ├── capabilities.py
 │   │   └── frontend.py
 │   └── version.py
+├── frontend/                 # INFUSE Stitch Frontend Console (Blocks 01-04)
+│   ├── src/
+│   │   ├── contracts/        # Normalized ViewModels & AppError
+│   │   ├── data/             # IDataProvider & MockDataProvider
+│   │   ├── state/            # Compartmentalized Store
+│   │   ├── components/       # Stitch Obsidian UI components
+│   │   └── pages/            # Execution & Governance pages
+│   └── tests/                # Frontend contract test suite (49 tests)
 ├── tests/
-│   └── contracts/            # Contract test suite (33 tests)
+│   ├── contracts/            # Python contract test suite (33 tests)
+│   └── api/                  # Python API test suite (25 tests)
 ├── docs/
 │   └── architecture/
-│       └── contracts.md      # Formal Contracts Specification
+│       ├── contracts.md      # Formal Contracts Specification
+│       ├── frontend_integration_map.md # Frontend Architecture Map
+│       └── api_contract.md   # Universal HTTP API Specification
 ├── ARCHITECTURE.md           # Architecture Baseline
 └── pyproject.toml
 ```
