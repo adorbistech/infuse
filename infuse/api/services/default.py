@@ -22,6 +22,9 @@ from infuse.contracts.execution import (
 from infuse.contracts.governor import GovernorAction, GovernorDecision
 from infuse.contracts.policy import GovernancePolicy
 from infuse.contracts.state import ExecutionState
+from infuse.context.errors import ExecutionContextValidationError
+from infuse.context.interfaces import IExecutionContextService
+from infuse.context.service import ExecutionContextService
 from infuse.policy.errors import PolicyConflictError, PolicyNotFoundError, PolicyValidationError
 from infuse.policy.interfaces import IPolicyManager
 from infuse.policy.manager import PolicyManager
@@ -31,13 +34,27 @@ from infuse.version import SCHEMA_VERSION
 class DefaultExecutionService(IExecutionService):
     """Default execution service demonstrating the API boundary without implementing autonomous execution engine."""
 
-    def __init__(self, repository: Optional[IExecutionRepository] = None) -> None:
+    def __init__(
+        self,
+        repository: Optional[IExecutionRepository] = None,
+        context_service: Optional[IExecutionContextService] = None
+    ) -> None:
         self.repository = repository or InMemoryExecutionRepository()
+        self.context_service = context_service or ExecutionContextService()
 
     def execute(self, request: ExecutionRequest) -> ExecutionResult:
-        execution_id = f"exec_{uuid.uuid4().hex[:8]}"
+        # Establish canonical execution context through Block 07 boundary
+        try:
+            ctx_record = self.context_service.create_context(request)
+        except ExecutionContextValidationError as exc:
+            raise RequestValidationError(
+                message=exc.message,
+                details=exc.details
+            ) from exc
+
+        execution_id = ctx_record.execution_id
         
-        # Build deterministic response for Block 05 transport verification
+        # Build deterministic response for transport verification
         result = ExecutionResult(
             execution_id=execution_id,
             request_id=request.request_id,

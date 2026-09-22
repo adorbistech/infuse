@@ -27,6 +27,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 04 — Frontend Data & State Contract:** `COMPLETE`
 * **Block 05 — Universal HTTP API:** `COMPLETE`
 * **Block 06 — Policy Manager:** `COMPLETE`
+* **Block 07 — Execution Context:** `COMPLETE`
 
 ---
 
@@ -35,6 +36,15 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── context/              # Execution Context Boundary (Block 07)
+│   │   ├── models.py         # Canonical ExecutionContextRecord & sub-models
+│   │   ├── builder.py        # Context Builder & Factory
+│   │   ├── validation.py     # Structural & constraint validation
+│   │   ├── normalization.py  # Deterministic normalization
+│   │   ├── interfaces.py     # IExecutionContextService & IExecutionContextRepository
+│   │   ├── repository.py     # In-memory execution context repository
+│   │   ├── service.py        # ExecutionContextService implementation
+│   │   └── errors.py         # Domain context exceptions
 │   ├── policy/               # Governance Policy Manager (Block 06)
 │   │   ├── manager.py        # Lifecycle, versioning & active policy authority
 │   │   ├── validation.py     # 10-section contract & range validation
@@ -70,7 +80,8 @@ infuse/
 ├── tests/
 │   ├── contracts/            # Python contract test suite (33 tests)
 │   ├── api/                  # Python API test suite (25 tests)
-│   └── policy/               # Python Policy Manager test suite (26 tests)
+│   ├── policy/               # Python Policy Manager test suite (26 tests)
+│   └── context/              # Python Execution Context test suite (20 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
