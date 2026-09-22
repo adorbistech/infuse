@@ -28,6 +28,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 05 — Universal HTTP API:** `COMPLETE`
 * **Block 06 — Policy Manager:** `COMPLETE`
 * **Block 07 — Execution Context:** `COMPLETE`
+* **Block 08 — Workload Classifier:** `COMPLETE`
 
 ---
 
@@ -36,6 +37,12 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── classifier/           # Workload Classifier (Block 08)
+│   │   ├── models.py         # Canonical WorkloadClassification & dimensions
+│   │   ├── rule_based.py     # Deterministic rule-based classifier
+│   │   ├── interfaces.py     # IWorkloadClassifier interface
+│   │   ├── service.py        # WorkloadClassificationService
+│   │   └── errors.py         # Domain classifier exceptions
 │   ├── context/              # Execution Context Boundary (Block 07)
 │   │   ├── models.py         # Canonical ExecutionContextRecord & sub-models
 │   │   ├── builder.py        # Context Builder & Factory
@@ -81,7 +88,8 @@ infuse/
 │   ├── contracts/            # Python contract test suite (33 tests)
 │   ├── api/                  # Python API test suite (25 tests)
 │   ├── policy/               # Python Policy Manager test suite (26 tests)
-│   └── context/              # Python Execution Context test suite (20 tests)
+│   ├── context/              # Python Execution Context test suite (20 tests)
+│   └── classifier/           # Python Workload Classifier test suite (15 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
