@@ -1,5 +1,5 @@
 /**
- * Governance / Policy Settings Page Assembler.
+ * Governance / Policy Settings Page Assembler (Hardened).
  */
 
 import { renderPolicyForm } from "../components/PolicyForm.js";
@@ -12,7 +12,7 @@ export function renderGovernancePage(store) {
 
   return `
     <div class="space-y-4">
-      ${renderPolicyForm(policyData)}
+      ${renderPolicyForm(policyData, store.state.policyFeedback)}
     </div>
   `;
 }

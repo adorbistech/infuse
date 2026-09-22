@@ -372,10 +372,18 @@ export class MockDataProvider extends IDataProvider {
   }
 
   async saveGovernancePolicy(updatedPolicyData) {
+    const lastSavedAt = new Date().toISOString();
+    const policyObj = {
+      ...updatedPolicyData,
+      last_saved_at: lastSavedAt
+    };
     this.policy = new GovernancePolicyViewModel({
-      policy: updatedPolicyData,
+      policy: policyObj,
       guardrail_strictness_index: "99.98% Strict",
-      is_editing: false
+      is_editing: false,
+      has_unsaved_changes: false,
+      last_saved_at: lastSavedAt,
+      validation_errors: []
     });
     return this.policy;
   }

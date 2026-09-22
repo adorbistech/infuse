@@ -178,6 +178,7 @@ export class GovernancePolicyViewModel {
       name: "Default Execution Policy",
       version: "1.0.4",
       is_active: true,
+      last_saved_at: "2026-09-21T12:00:00Z",
       budget: {
         max_cost_per_task: 10.00,
         max_cost_per_day: 150.00,
@@ -205,13 +206,13 @@ export class GovernancePolicyViewModel {
       web: {
         enabled: true,
         allowed_domains: ["*"],
-        blocked_domains: [],
+        blocked_domains: ["*.internal", "*.crypto-mining.pool"],
         max_web_requests_per_task: 20
       },
       tools: {
         enabled: true,
         allowed_tools: ["*"],
-        blocked_tools: [],
+        blocked_tools: ["shell_root_exec", "eval_raw_code"],
         max_tool_calls_per_task: 50,
         max_consecutive_tool_failures: 3
       },
@@ -237,12 +238,116 @@ export class GovernancePolicyViewModel {
     };
     this.guardrail_strictness_index = data.guardrail_strictness_index || "99.98% Strict";
     this.is_editing = !!data.is_editing;
+    this.has_unsaved_changes = !!data.has_unsaved_changes;
+    this.last_saved_at = data.last_saved_at || this.policy.last_saved_at || new Date().toISOString();
+    this.validation_errors = data.validation_errors || [];
     this.available_actions = data.available_actions || [
+      GovernorAction.CONTINUE,
       GovernorAction.OPTIMIZE,
+      GovernorAction.ESCALATE,
+      GovernorAction.DOWNGRADE,
       GovernorAction.SWITCH,
       GovernorAction.THROTTLE,
-      GovernorAction.STOP,
-      GovernorAction.CONTINUE
+      GovernorAction.STOP
     ];
   }
+}
+
+/**
+ * Client-side UX validation helper for GovernancePolicy representation.
+ * Prevents obvious malformed values before mock persistence / API dispatch.
+ * 
+ * @param {Object} policy 
+ * @returns {{isValid: boolean, errors: string[]}}
+ */
+export function validateGovernancePolicy(policy) {
+  const errors = [];
+  if (!policy) {
+    return { isValid: false, errors: ["Policy data is missing or empty."] };
+  }
+
+  // Budget validation
+  if (policy.budget) {
+    if (policy.budget.max_cost_per_task !== undefined && policy.budget.max_cost_per_task < 0) {
+      errors.push("Budget max cost per task cannot be negative.");
+    }
+    if (policy.budget.max_cost_per_day !== undefined && policy.budget.max_cost_per_day < 0) {
+      errors.push("Budget max cost per day cannot be negative.");
+    }
+    if (policy.budget.max_cost_per_month !== undefined && policy.budget.max_cost_per_month < 0) {
+      errors.push("Budget max cost per month cannot be negative.");
+    }
+  }
+
+  // Token validation
+  if (policy.tokens) {
+    if (policy.tokens.max_input_tokens !== undefined && policy.tokens.max_input_tokens < 0) {
+      errors.push("Max input tokens cannot be negative.");
+    }
+    if (policy.tokens.max_output_tokens !== undefined && policy.tokens.max_output_tokens < 0) {
+      errors.push("Max output tokens cannot be negative.");
+    }
+    if (policy.tokens.max_total_tokens !== undefined && policy.tokens.max_total_tokens < 0) {
+      errors.push("Max total tokens cannot be negative.");
+    }
+    if (
+      policy.tokens.max_total_tokens !== undefined &&
+      policy.tokens.max_input_tokens !== undefined &&
+      policy.tokens.max_total_tokens < policy.tokens.max_input_tokens
+    ) {
+      errors.push("Max total tokens should not be less than max input tokens.");
+    }
+  }
+
+  // Request validation
+  if (policy.requests) {
+    if (policy.requests.max_rpm !== undefined && policy.requests.max_rpm < 1) {
+      errors.push("Max requests per minute (RPM) must be at least 1.");
+    }
+    if (policy.requests.max_requests_per_task !== undefined && policy.requests.max_requests_per_task < 1) {
+      errors.push("Max requests per task must be at least 1.");
+    }
+  }
+
+  // Runtime validation
+  if (policy.runtime) {
+    if (policy.runtime.max_execution_time_seconds !== undefined && policy.runtime.max_execution_time_seconds < 1) {
+      errors.push("Max execution time must be at least 1 second.");
+    }
+  }
+
+  // Retries validation
+  if (policy.retries) {
+    if (policy.retries.max_retries !== undefined && policy.retries.max_retries < 0) {
+      errors.push("Max retries cannot be negative.");
+    }
+    if (policy.retries.backoff_factor !== undefined && policy.retries.backoff_factor < 1.0) {
+      errors.push("Backoff factor must be at least 1.0.");
+    }
+  }
+
+  // Anomaly validation
+  if (policy.anomaly) {
+    if (policy.anomaly.token_velocity_surge_threshold !== undefined && policy.anomaly.token_velocity_surge_threshold < 0) {
+      errors.push("Token velocity surge threshold cannot be negative.");
+    }
+    if (policy.anomaly.repetitive_loop_threshold !== undefined && policy.anomaly.repetitive_loop_threshold < 1) {
+      errors.push("Repetitive loop threshold must be at least 1.");
+    }
+  }
+
+  // Canonical Action Vocabulary validation
+  const validActions = Object.values(GovernorAction);
+  if (policy.actions) {
+    for (const [key, actionVal] of Object.entries(policy.actions)) {
+      if (actionVal && !validActions.includes(actionVal)) {
+        errors.push(`Action '${actionVal}' for '${key}' is not a canonical GovernorAction.`);
+      }
+    }
+  }
+
+  return {
+    isValid: errors.length === 0,
+    errors
+  };
 }
