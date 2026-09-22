@@ -29,6 +29,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 06 — Policy Manager:** `COMPLETE`
 * **Block 07 — Execution Context:** `COMPLETE`
 * **Block 08 — Workload Classifier:** `COMPLETE`
+* **Block 09 — Provider & Model Registry:** `COMPLETE`
 
 ---
 
@@ -37,6 +38,15 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── registry/             # Provider & Model Registry (Block 09)
+│   │   ├── models.py         # Canonical ProviderRecord, ModelRecord & declarations
+│   │   ├── validation.py     # Structural & credential validation
+│   │   ├── normalization.py  # Deterministic normalization
+│   │   ├── interfaces.py     # IProviderModelRegistry interface
+│   │   ├── repository.py     # InMemoryProviderModelRegistry implementation
+│   │   ├── defaults.py       # Standard reference catalog fixtures
+│   │   ├── service.py        # ProviderModelService boundary
+│   │   └── errors.py         # Domain registry exceptions
 │   ├── classifier/           # Workload Classifier (Block 08)
 │   │   ├── models.py         # Canonical WorkloadClassification & dimensions
 │   │   ├── rule_based.py     # Deterministic rule-based classifier
@@ -89,7 +99,8 @@ infuse/
 │   ├── api/                  # Python API test suite (25 tests)
 │   ├── policy/               # Python Policy Manager test suite (26 tests)
 │   ├── context/              # Python Execution Context test suite (20 tests)
-│   └── classifier/           # Python Workload Classifier test suite (15 tests)
+│   ├── classifier/           # Python Workload Classifier test suite (15 tests)
+│   └── registry/             # Python Provider & Model Registry test suite (19 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
