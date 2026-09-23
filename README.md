@@ -35,6 +35,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 12 — Provider Adapter Layer:** `COMPLETE`
 * **Block 13 — Execution Lifecycle:** `COMPLETE`
 * **Block 14 — Event Contract & Event Bus:** `COMPLETE`
+* **Block 15 — Token Observer:** `COMPLETE`
 
 ---
 
@@ -43,6 +44,11 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── observer/             # Token Observer Layer (Block 15)
+│   │   ├── observer.py       # Deterministic TokenObserver & aggregation
+│   │   ├── interfaces.py     # ITokenObserver interface
+│   │   ├── models.py         # ExecutionTokenSummary & TokenObservationRecord
+│   │   └── errors.py         # Domain observer exceptions
 │   ├── events/               # Event Contract & Event Bus (Block 14)
 │   │   ├── bus.py            # InMemoryEventBus with validation & isolation
 │   │   ├── collector.py      # InMemoryEventCollector for test assertions
@@ -142,7 +148,8 @@ infuse/
 │   ├── router/               # Python Deterministic Router test suite (15 tests)
 │   ├── providers/            # Python Provider Adapter test suite (18 tests)
 │   ├── lifecycle/            # Python Execution Lifecycle test suite (15 tests)
-│   └── events/               # Python Event Contract & Event Bus test suite (21 tests)
+│   ├── events/               # Python Event Contract & Event Bus test suite (21 tests)
+│   └── observer/             # Python Token Observer test suite (20 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
