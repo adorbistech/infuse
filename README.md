@@ -41,6 +41,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 18 — Tool Activity Observer:** `COMPLETE`
 * **Block 19 — Web Activity Observer:** `COMPLETE`
 * **Block 20 — Execution State Engine:** `COMPLETE`
+* **Block 21 — Governor Engine:** `COMPLETE`
 
 ---
 
@@ -49,6 +50,11 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── governor/             # Governor Decision Engine Layer (Block 21)
+│   │   ├── engine.py         # Deterministic GovernorEngine & evaluations
+│   │   ├── interfaces.py     # IGovernorEngine interface
+│   │   ├── models.py         # EvaluationContext, GovernorDecisionRecord
+│   │   └── errors.py         # Domain governor exceptions
 │   ├── state/                # Execution State Engine Layer (Block 20)
 │   │   ├── engine.py         # Deterministic ExecutionStateEngine & transitions
 │   │   ├── interfaces.py     # IExecutionStateEngine interface
@@ -187,7 +193,8 @@ infuse/
 │   ├── health/               # Python Health Engine test suite (15 tests)
 │   ├── tools/                # Python Tool Activity Observer test suite (14 tests)
 │   ├── web/                  # Python Web Activity Observer test suite (35 tests)
-│   └── state/                # Python Execution State Engine test suite (48 tests)
+│   ├── state/                # Python Execution State Engine test suite (48 tests)
+│   └── governor/             # Python Governor Engine test suite (50 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
