@@ -32,6 +32,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 09 — Provider & Model Registry:** `COMPLETE`
 * **Block 10 — Capability Resolver:** `COMPLETE`
 * **Block 11 — Router:** `COMPLETE`
+* **Block 12 — Provider Adapter Layer:** `COMPLETE`
 
 ---
 
@@ -40,6 +41,13 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── providers/            # Provider Adapter Layer (Block 12)
+│   │   ├── models.py         # ProviderExecutionRequest, Response, Chunk, Usage & Error records
+│   │   ├── interfaces.py     # IProviderAdapter & IProviderAdapterRegistry interfaces
+│   │   ├── registry.py       # InMemoryProviderAdapterRegistry
+│   │   ├── service.py        # ProviderAdapterService boundary
+│   │   ├── adapters/         # Provider adapters (BaseProviderAdapter, MockProviderAdapter)
+│   │   └── errors.py         # Domain adapter exceptions
 │   ├── router/               # Deterministic Router (Block 11)
 │   │   ├── models.py         # Canonical RouteDecision, RouteTarget, RoutingStrategy & evidence
 │   │   ├── interfaces.py     # IRouter interface
@@ -116,7 +124,8 @@ infuse/
 │   ├── classifier/           # Python Workload Classifier test suite (15 tests)
 │   ├── registry/             # Python Provider & Model Registry test suite (19 tests)
 │   ├── resolver/             # Python Capability Resolver test suite (16 tests)
-│   └── router/               # Python Deterministic Router test suite (15 tests)
+│   ├── router/               # Python Deterministic Router test suite (15 tests)
+│   └── providers/            # Python Provider Adapter test suite (18 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
