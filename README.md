@@ -34,6 +34,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 11 — Router:** `COMPLETE`
 * **Block 12 — Provider Adapter Layer:** `COMPLETE`
 * **Block 13 — Execution Lifecycle:** `COMPLETE`
+* **Block 14 — Event Contract & Event Bus:** `COMPLETE`
 
 ---
 
@@ -42,6 +43,13 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── events/               # Event Contract & Event Bus (Block 14)
+│   │   ├── bus.py            # InMemoryEventBus with validation & isolation
+│   │   ├── collector.py      # InMemoryEventCollector for test assertions
+│   │   ├── interfaces.py     # IEventBus & EventHandler interfaces
+│   │   ├── validation.py     # Canonical event validation
+│   │   ├── models.py         # Lifecycle event payloads & canonical re-exports
+│   │   └── errors.py         # Domain event exceptions
 │   ├── lifecycle/            # Execution Lifecycle (Block 13)
 │   │   ├── models.py         # ExecutionLifecycleRecord, LifecycleState & transitions
 │   │   ├── interfaces.py     # IExecutionLifecycleService & Repository interfaces
@@ -133,7 +141,8 @@ infuse/
 │   ├── resolver/             # Python Capability Resolver test suite (16 tests)
 │   ├── router/               # Python Deterministic Router test suite (15 tests)
 │   ├── providers/            # Python Provider Adapter test suite (18 tests)
-│   └── lifecycle/            # Python Execution Lifecycle test suite (15 tests)
+│   ├── lifecycle/            # Python Execution Lifecycle test suite (15 tests)
+│   └── events/               # Python Event Contract & Event Bus test suite (21 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification

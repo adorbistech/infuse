@@ -45,6 +45,16 @@ from infuse.router.router import DeterministicRouter
 from infuse.router.service import RouterService
 
 
+from infuse.contracts.events import EventSource, EventType, ExecutionEvent
+from infuse.events.interfaces import IEventBus
+from infuse.events.models import (
+    ExecutionCompletedPayload,
+    ExecutionFailedPayload,
+    ExecutionStartedPayload,
+)
+import uuid
+
+
 class ExecutionLifecycleService(IExecutionLifecycleService):
     """Authoritative service coordinating the full execution lifecycle pipeline."""
 
@@ -56,11 +66,13 @@ class ExecutionLifecycleService(IExecutionLifecycleService):
         registry: Optional[IProviderModelRegistry] = None,
         resolver_service: Optional[CapabilityResolverService] = None,
         router_service: Optional[RouterService] = None,
-        adapter_service: Optional[ProviderAdapterService] = None
+        adapter_service: Optional[ProviderAdapterService] = None,
+        event_bus: Optional[IEventBus] = None
     ) -> None:
         self.repository = repository or InMemoryExecutionLifecycleRepository()
         self.context_service = context_service or ExecutionContextService()
         self.classifier_service = classifier_service or WorkloadClassificationService()
+        self.event_bus = event_bus
         
         # Registry & catalog setup
         self.registry = registry or InMemoryProviderModelRegistry()
@@ -91,10 +103,34 @@ class ExecutionLifecycleService(IExecutionLifecycleService):
                 adapter_reg.register(MockProviderAdapter(
                     provider_id=p_id,
                     supported_models=[
-                        m.model_id for m in self.registry.list_models(provider_id=p_id)
+                        m.model_id for m in self.registry.list_models() if m.provider_id == p_id
                     ] if hasattr(self.registry, "list_models") else None
                 ), overwrite=True)
             self.adapter_service = ProviderAdapterService(registry=adapter_reg)
+
+    def _publish_event(
+        self,
+        event_type: EventType,
+        execution_id: str,
+        sequence: int,
+        payload: dict
+    ) -> None:
+        """Safely publish an event to the Event Bus if configured."""
+        if not self.event_bus:
+            return
+        try:
+            event = ExecutionEvent(
+                event_id=f"evt_{uuid.uuid4().hex[:12]}",
+                execution_id=execution_id,
+                type=event_type,
+                source=EventSource.SYSTEM,
+                sequence=sequence,
+                payload=payload
+            )
+            self.event_bus.publish(event)
+        except Exception:
+            # Event delivery issues must never corrupt primary lifecycle execution
+            pass
 
     def create_execution(
         self,
@@ -176,6 +212,20 @@ class ExecutionLifecycleService(IExecutionLifecycleService):
             record.error_message = error_msg
             record.result = result
             self.repository.save(record)
+            self._publish_event(
+                event_type=EventType.EXECUTION_FAILED,
+                execution_id=eid,
+                sequence=0,
+                payload=ExecutionFailedPayload(
+                    request_id=request.request_id,
+                    task_id=request.task.task_id,
+                    error_type="RESOLUTION_ERROR",
+                    error_message=error_msg,
+                    is_retryable=False,
+                    duration_ms=0.0,
+                    status="FAILED"
+                ).model_dump()
+            )
             return result
 
         # 5. Routing Decision (Block 11)
@@ -201,6 +251,19 @@ class ExecutionLifecycleService(IExecutionLifecycleService):
             eid,
             LifecycleState.RUNNING,
             reason=f"Invoking Provider Adapter for '{selected_target.provider_id}'"
+        )
+        self._publish_event(
+            event_type=EventType.EXECUTION_STARTED,
+            execution_id=eid,
+            sequence=0,
+            payload=ExecutionStartedPayload(
+                request_id=request.request_id,
+                task_id=request.task.task_id,
+                provider_id=selected_target.provider_id,
+                model_id=selected_target.model_id,
+                session_id=request.execution_context.session_id if request.execution_context else None,
+                workflow_id=request.execution_context.workflow_id if request.execution_context else None
+            ).model_dump()
         )
 
         # 7. Execute via Provider Adapter (Block 12)
@@ -229,6 +292,23 @@ class ExecutionLifecycleService(IExecutionLifecycleService):
             completed_rec.result = exec_result
             completed_rec.duration_ms = duration_ms
             self.repository.save(completed_rec)
+
+            self._publish_event(
+                event_type=EventType.EXECUTION_COMPLETED,
+                execution_id=eid,
+                sequence=1,
+                payload=ExecutionCompletedPayload(
+                    request_id=request.request_id,
+                    task_id=request.task.task_id,
+                    provider_id=selected_target.provider_id,
+                    model_id=selected_target.model_id,
+                    duration_ms=duration_ms,
+                    input_tokens=exec_result.execution.input_tokens,
+                    output_tokens=exec_result.execution.output_tokens,
+                    total_tokens=exec_result.execution.total_tokens,
+                    status="COMPLETED"
+                ).model_dump()
+            )
             return exec_result
 
         except Exception as exc:
@@ -269,6 +349,24 @@ class ExecutionLifecycleService(IExecutionLifecycleService):
             failed_rec.duration_ms = duration_ms
             failed_rec.result = exec_result
             self.repository.save(failed_rec)
+
+            self._publish_event(
+                event_type=EventType.EXECUTION_FAILED,
+                execution_id=eid,
+                sequence=1,
+                payload=ExecutionFailedPayload(
+                    request_id=request.request_id,
+                    task_id=request.task.task_id,
+                    provider_id=selected_target.provider_id,
+                    model_id=selected_target.model_id,
+                    error_type=norm_err.error_type if hasattr(norm_err, "error_type") else "PROVIDER_ERROR",
+                    error_message=norm_err.message if hasattr(norm_err, "message") else str(norm_err),
+                    is_retryable=norm_err.is_retryable if hasattr(norm_err, "is_retryable") else False,
+                    http_status=norm_err.http_status if hasattr(norm_err, "http_status") else None,
+                    duration_ms=duration_ms,
+                    status="FAILED"
+                ).model_dump()
+            )
             return exec_result
 
     def get_execution(self, execution_id: str) -> Optional[ExecutionLifecycleRecord]:
