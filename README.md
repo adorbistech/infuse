@@ -36,6 +36,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 13 — Execution Lifecycle:** `COMPLETE`
 * **Block 14 — Event Contract & Event Bus:** `COMPLETE`
 * **Block 15 — Token Observer:** `COMPLETE`
+* **Block 16 — Economics Engine:** `COMPLETE`
 
 ---
 
@@ -44,6 +45,13 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── economics/            # Economics Engine Layer (Block 16)
+│   │   ├── calculator.py     # Exact Decimal cost calculation core
+│   │   ├── engine.py         # Deterministic EconomicsEngine
+│   │   ├── pricing_registry.py # In-memory pricing rates catalog
+│   │   ├── interfaces.py     # IEconomicsEngine & IPricingRegistry
+│   │   ├── models.py         # ExecutionEconomicSummary, ModelPricingRate, CostComponent
+│   │   └── errors.py         # Domain economics exceptions
 │   ├── observer/             # Token Observer Layer (Block 15)
 │   │   ├── observer.py       # Deterministic TokenObserver & aggregation
 │   │   ├── interfaces.py     # ITokenObserver interface
@@ -149,7 +157,8 @@ infuse/
 │   ├── providers/            # Python Provider Adapter test suite (18 tests)
 │   ├── lifecycle/            # Python Execution Lifecycle test suite (15 tests)
 │   ├── events/               # Python Event Contract & Event Bus test suite (21 tests)
-│   └── observer/             # Python Token Observer test suite (20 tests)
+│   ├── observer/             # Python Token Observer test suite (20 tests)
+│   └── economics/            # Python Economics Engine test suite (18 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
