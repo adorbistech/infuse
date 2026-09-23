@@ -39,6 +39,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 16 — Economics Engine:** `COMPLETE`
 * **Block 17 — Health Engine:** `COMPLETE`
 * **Block 18 — Tool Activity Observer:** `COMPLETE`
+* **Block 19 — Web Activity Observer:** `COMPLETE`
 
 ---
 
@@ -47,6 +48,11 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── web/                  # Web Activity Observer Layer (Block 19)
+│   │   ├── observer.py       # Deterministic WebActivityObserver & correlation
+│   │   ├── interfaces.py     # IWebActivityObserver interface
+│   │   ├── models.py         # ExecutionWebSummary, WebActivityRecord
+│   │   └── errors.py         # Domain web observer exceptions
 │   ├── tools/                # Tool Activity Observer Layer (Block 18)
 │   │   ├── observer.py       # Deterministic ToolActivityObserver & correlation
 │   │   ├── interfaces.py     # IToolActivityObserver interface
@@ -173,7 +179,8 @@ infuse/
 │   ├── observer/             # Python Token Observer test suite (20 tests)
 │   ├── economics/            # Python Economics Engine test suite (18 tests)
 │   ├── health/               # Python Health Engine test suite (15 tests)
-│   └── tools/                # Python Tool Activity Observer test suite (14 tests)
+│   ├── tools/                # Python Tool Activity Observer test suite (14 tests)
+│   └── web/                  # Python Web Activity Observer test suite (35 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
