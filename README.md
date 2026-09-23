@@ -33,6 +33,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 10 — Capability Resolver:** `COMPLETE`
 * **Block 11 — Router:** `COMPLETE`
 * **Block 12 — Provider Adapter Layer:** `COMPLETE`
+* **Block 13 — Execution Lifecycle:** `COMPLETE`
 
 ---
 
@@ -41,6 +42,12 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── lifecycle/            # Execution Lifecycle (Block 13)
+│   │   ├── models.py         # ExecutionLifecycleRecord, LifecycleState & transitions
+│   │   ├── interfaces.py     # IExecutionLifecycleService & Repository interfaces
+│   │   ├── repository.py     # InMemoryExecutionLifecycleRepository
+│   │   ├── service.py        # ExecutionLifecycleService coordinator
+│   │   └── errors.py         # Domain lifecycle exceptions
 │   ├── providers/            # Provider Adapter Layer (Block 12)
 │   │   ├── models.py         # ProviderExecutionRequest, Response, Chunk, Usage & Error records
 │   │   ├── interfaces.py     # IProviderAdapter & IProviderAdapterRegistry interfaces
@@ -125,7 +132,8 @@ infuse/
 │   ├── registry/             # Python Provider & Model Registry test suite (19 tests)
 │   ├── resolver/             # Python Capability Resolver test suite (16 tests)
 │   ├── router/               # Python Deterministic Router test suite (15 tests)
-│   └── providers/            # Python Provider Adapter test suite (18 tests)
+│   ├── providers/            # Python Provider Adapter test suite (18 tests)
+│   └── lifecycle/            # Python Execution Lifecycle test suite (15 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
