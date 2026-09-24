@@ -43,6 +43,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 20 — Execution State Engine:** `COMPLETE`
 * **Block 21 — Governor Engine:** `COMPLETE`
 * **Block 22 — Execution Control Boundary:** `COMPLETE`
+* **Block 23 — Universal Agent Adapter:** `COMPLETE`
 
 ---
 
@@ -51,6 +52,11 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── agents/               # Universal Agent Adapter Layer (Block 23)
+│   │   ├── reference.py      # ReferenceUniversalAgentAdapter & step loop
+│   │   ├── interfaces.py     # IUniversalAgentAdapter interface
+│   │   ├── models.py         # AgentIdentity, AgentStepRequest, AgentStepResponse
+│   │   └── errors.py         # Domain agent adapter exceptions
 │   ├── control/              # Execution Control Boundary Layer (Block 22)
 │   │   ├── boundary.py       # Deterministic ExecutionControlBoundary & dispatch
 │   │   ├── interfaces.py     # IExecutionControlBoundary, IControlExecutor
@@ -201,7 +207,8 @@ infuse/
 │   ├── web/                  # Python Web Activity Observer test suite (35 tests)
 │   ├── state/                # Python Execution State Engine test suite (48 tests)
 │   ├── governor/             # Python Governor Engine test suite (50 tests)
-│   └── control/              # Python Execution Control Boundary test suite (54 tests)
+│   ├── control/              # Python Execution Control Boundary test suite (54 tests)
+│   └── agents/               # Python Universal Agent Adapter test suite (56 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
