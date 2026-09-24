@@ -47,6 +47,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 24 — Claude Code Adapter:** `COMPLETE`
 * **Block 25 — OpenCode Adapter:** `COMPLETE`
 * **Block 26 — Codex Adapter:** `COMPLETE`
+* **Block 27 — Additional Agent Adapters (Hermes/OpenClaw/Lovable):** `COMPLETE`
 
 ---
 
@@ -55,7 +56,22 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
-│   ├── agents/               # Universal Agent Adapter Layer (Blocks 23-26)
+│   ├── agents/               # Universal Agent Adapter Layer (Blocks 23-27)
+│   │   ├── hermes/           # Hermes Adapter (Block 27)
+│   │   │   ├── adapter.py    # HermesAdapter implementation
+│   │   │   ├── transport.py  # HermesSubprocessTransport & reference transport
+│   │   │   ├── models.py     # HermesAdapterConfig, HermesExecutionOutput
+│   │   │   └── errors.py     # Domain Hermes exceptions
+│   │   ├── openclaw/         # OpenClaw Adapter (Block 27)
+│   │   │   ├── adapter.py    # OpenClawAdapter implementation
+│   │   │   ├── transport.py  # OpenClawSubprocessTransport & reference transport
+│   │   │   ├── models.py     # OpenClawAdapterConfig, OpenClawExecutionOutput
+│   │   │   └── errors.py     # Domain OpenClaw exceptions
+│   │   ├── lovable/          # Lovable Adapter (Block 27)
+│   │   │   ├── adapter.py    # LovableAdapter implementation
+│   │   │   ├── transport.py  # LovableHttpTransport & reference transport
+│   │   │   ├── models.py     # LovableAdapterConfig, LovableExecutionOutput
+│   │   │   └── errors.py     # Domain Lovable exceptions
 │   │   ├── codex/            # Codex Adapter (Block 26)
 │   │   │   ├── adapter.py    # CodexAdapter implementation
 │   │   │   ├── transport.py  # CodexSubprocessTransport & reference transport
@@ -226,7 +242,7 @@ infuse/
 │   ├── state/                # Python Execution State Engine test suite (48 tests)
 │   ├── governor/             # Python Governor Engine test suite (50 tests)
 │   ├── control/              # Python Execution Control Boundary test suite (54 tests)
-│   └── agents/               # Python Universal, Claude, OpenCode & Codex Adapter test suite (229 tests)
+│   └── agents/               # Python Universal, Claude, OpenCode, Codex, Hermes, OpenClaw & Lovable Adapter test suite (310 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification

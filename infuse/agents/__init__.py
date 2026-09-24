@@ -31,6 +31,9 @@ from infuse.agents.reference import ReferenceUniversalAgentAdapter
 from infuse.agents.claude import ClaudeCodeAdapter
 from infuse.agents.opencode import OpenCodeAdapter
 from infuse.agents.codex import CodexAdapter
+from infuse.agents.hermes import HermesAdapter
+from infuse.agents.openclaw import OpenClawAdapter
+from infuse.agents.lovable import LovableAdapter
 
 __all__ = [
     "AdapterRegistration",
@@ -56,4 +59,7 @@ __all__ = [
     "ClaudeCodeAdapter",
     "OpenCodeAdapter",
     "CodexAdapter",
+    "HermesAdapter",
+    "OpenClawAdapter",
+    "LovableAdapter",
 ]
