@@ -48,6 +48,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 25 — OpenCode Adapter:** `COMPLETE`
 * **Block 26 — Codex Adapter:** `COMPLETE`
 * **Block 27 — Additional Agent Adapters (Hermes/OpenClaw/Lovable):** `COMPLETE`
+* **Block 28 — SDK Layer:** `COMPLETE`
 
 ---
 
@@ -56,6 +57,17 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
+│   ├── sdk/                  # Developer SDK Layer (Block 28)
+│   │   ├── client.py         # InfuseClient primary entry point
+│   │   ├── execution.py      # ExecutionClient sub-client
+│   │   ├── policy.py         # PolicyClient sub-client
+│   │   ├── events.py         # EventClient sub-client
+│   │   ├── governor.py       # GovernorClient sub-client
+│   │   ├── control.py        # ControlClient sub-client
+│   │   ├── transport.py      # ITransport, HttpTransport, ReferenceTransport
+│   │   ├── config.py         # ClientConfig definition
+│   │   ├── models.py         # SDK response envelopes & canonical contract re-exports
+│   │   └── errors.py         # SDK error taxonomy & secret redaction
 │   ├── agents/               # Universal Agent Adapter Layer (Blocks 23-27)
 │   │   ├── hermes/           # Hermes Adapter (Block 27)
 │   │   │   ├── adapter.py    # HermesAdapter implementation
@@ -242,7 +254,8 @@ infuse/
 │   ├── state/                # Python Execution State Engine test suite (48 tests)
 │   ├── governor/             # Python Governor Engine test suite (50 tests)
 │   ├── control/              # Python Execution Control Boundary test suite (54 tests)
-│   └── agents/               # Python Universal, Claude, OpenCode, Codex, Hermes, OpenClaw & Lovable Adapter test suite (310 tests)
+│   ├── agents/               # Python Universal, Claude, OpenCode, Codex, Hermes, OpenClaw & Lovable Adapter test suite (310 tests)
+│   └── sdk/                  # Python SDK Layer test suite (50 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
