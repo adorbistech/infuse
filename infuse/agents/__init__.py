@@ -29,6 +29,7 @@ from infuse.agents.models import (
 )
 from infuse.agents.reference import ReferenceUniversalAgentAdapter
 from infuse.agents.claude import ClaudeCodeAdapter
+from infuse.agents.opencode import OpenCodeAdapter
 
 __all__ = [
     "AdapterRegistration",
@@ -52,4 +53,5 @@ __all__ = [
     "AgentExecutionSession",
     "ReferenceUniversalAgentAdapter",
     "ClaudeCodeAdapter",
+    "OpenCodeAdapter",
 ]

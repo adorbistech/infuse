@@ -45,6 +45,7 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 * **Block 22 — Execution Control Boundary:** `COMPLETE`
 * **Block 23 — Universal Agent Adapter:** `COMPLETE`
 * **Block 24 — Claude Code Adapter:** `COMPLETE`
+* **Block 25 — OpenCode Adapter:** `COMPLETE`
 
 ---
 
@@ -53,7 +54,12 @@ It acts as a **voltage regulator** between autonomous agents (such as Claude Cod
 ```text
 infuse/
 ├── infuse/
-│   ├── agents/               # Universal Agent Adapter Layer (Block 23 / 24)
+│   ├── agents/               # Universal Agent Adapter Layer (Blocks 23-25)
+│   │   ├── opencode/         # OpenCode Adapter (Block 25)
+│   │   │   ├── adapter.py    # OpenCodeAdapter implementation
+│   │   │   ├── transport.py  # OpenCodeSubprocessTransport & reference transport
+│   │   │   ├── models.py     # OpenCodeAdapterConfig, OpenCodeExecutionOutput
+│   │   │   └── errors.py     # Domain OpenCode exceptions
 │   │   ├── claude/           # Claude Code Adapter (Block 24)
 │   │   │   ├── adapter.py    # ClaudeCodeAdapter implementation
 │   │   │   ├── transport.py  # ClaudeSubprocessTransport & reference transport
@@ -214,7 +220,7 @@ infuse/
 │   ├── state/                # Python Execution State Engine test suite (48 tests)
 │   ├── governor/             # Python Governor Engine test suite (50 tests)
 │   ├── control/              # Python Execution Control Boundary test suite (54 tests)
-│   └── agents/               # Python Universal & Claude Code Adapter test suite (112 tests)
+│   └── agents/               # Python Universal, Claude & OpenCode Adapter test suite (170 tests)
 ├── docs/
 │   └── architecture/
 │       ├── contracts.md      # Formal Contracts Specification
