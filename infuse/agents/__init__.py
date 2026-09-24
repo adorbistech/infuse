@@ -28,6 +28,7 @@ from infuse.agents.models import (
     AgentStepResponse,
 )
 from infuse.agents.reference import ReferenceUniversalAgentAdapter
+from infuse.agents.claude import ClaudeCodeAdapter
 
 __all__ = [
     "AdapterRegistration",
@@ -50,4 +51,5 @@ __all__ = [
     "AgentErrorRecord",
     "AgentExecutionSession",
     "ReferenceUniversalAgentAdapter",
+    "ClaudeCodeAdapter",
 ]
