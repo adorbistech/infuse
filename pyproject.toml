@@ -43,6 +43,7 @@ Documentation = "https://github.com/adorbistech/infuse/tree/main/docs"
 
 [project.scripts]
 infuse = "infuse.cli.main:main"
+infuse-mcp = "infuse.mcp.main:main"
 
 [tool.setuptools.packages.find]
 where = ["."]
