@@ -83,6 +83,23 @@ from infuse.version import SCHEMA_VERSION
 from infuse.web.observer import WebActivityObserver
 
 
+def _normalize_policy_for_state_engine(policy: Optional[GovernancePolicy]) -> Optional[GovernancePolicy]:
+    """Ensure Block 20 State Engine field compatibility on GovernancePolicy."""
+    if not policy:
+        return policy
+    for src, dst in [
+        ("budget", "budget_controls"),
+        ("tokens", "token_controls"),
+        ("tools", "tool_controls"),
+        ("web", "web_controls"),
+        ("runtime", "runtime_controls"),
+        ("anomaly", "anomaly_protection"),
+    ]:
+        if hasattr(policy, src) and not hasattr(policy, dst):
+            setattr(policy, dst, getattr(policy, src))
+    return policy
+
+
 class EndToEndIntegrationEnvironment:
     """Thread-safe, deterministic, in-memory integration environment wiring all INFUSE blocks."""
 
