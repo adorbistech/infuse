@@ -102,6 +102,10 @@ class TestBlock31Integration(unittest.TestCase):
         for comp in self.manifest.components:
             self.assertIn(comp.license, ["MIT", "Apache-2.0"])
             self.assertTrue(len(comp.license_notes) > 0)
+        # Explicit verification of jman4162 license
+        token_router = self.registry.get_component("jman4162/llm-token-router")
+        self.assertEqual(token_router.license, "Apache-2.0")
+        self.assertIn("Apache-2.0", token_router.license_notes)
 
     # 6. Integration classification correctness
     def test_06_integration_classification(self):

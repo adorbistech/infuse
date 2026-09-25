@@ -45,7 +45,7 @@ components:
     repository: "https://github.com/jman4162/llm-token-router"
     version: "commit-985e24da5b67edb7d405040243bcfb8568029d40"
     commit_sha: "985e24da5b67edb7d405040243bcfb8568029d40"
-    license: "MIT"
+    license: "Apache-2.0"
     intended_purpose: "Conceptual reference for token velocity tracking, token budget constraints, and objective profile constraints."
     integration_type: "REIMPLEMENTED_CLEAN_ROOM"
     dependency_status: "NONE"
@@ -62,7 +62,7 @@ components:
     runtime_dependency: false
     security_considerations:
       - "Pure algorithmic mathematical calculations; no network or filesystem operations."
-    license_notes: "Permissive MIT license. Clean-room conceptual adaptation without source code duplication."
+    license_notes: "Permissive Apache-2.0 license. Clean-room conceptual adaptation without source code duplication."
     removal_strategy: "Internalized into native INFUSE Block 16 and Block 21 algorithms."
     verification_status: "VERIFIED"
     verification_source: "git ls-remote https://github.com/jman4162/llm-token-router HEAD"

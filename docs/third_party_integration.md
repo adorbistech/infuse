@@ -46,8 +46,8 @@ To guarantee supply-chain reproducibility and prevent unpinned dependency drift,
 ## 4. License Due Diligence
 
 All integrated and referenced components utilize permissive OSI-approved open source licenses (MIT or Apache-2.0):
-- **MIT License**: LiteLLM (Community edition), jman4162/llm-token-router, timholm/llm-router, k1y0miiii/llm-gateway, tahasiddiquii/llm-router.
-- **Apache-2.0**: vLLM Semantic Router, agentgateway.
+- **MIT License**: LiteLLM (Community edition), timholm/llm-router, k1y0miiii/llm-gateway, tahasiddiquii/llm-router.
+- **Apache-2.0**: jman4162/llm-token-router, vLLM Semantic Router, agentgateway.
 - **Zero Proprietary / Enterprise Code**: Enterprise-licensed proxy code and non-permissive dependencies are strictly excluded from INFUSE core.
 
 ---
