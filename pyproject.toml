@@ -41,6 +41,10 @@ Homepage = "https://github.com/adorbistech/infuse"
 Repository = "https://github.com/adorbistech/infuse"
 Documentation = "https://github.com/adorbistech/infuse/tree/main/docs"
 
+[project.scripts]
+infuse = "infuse.cli.main:main"
+
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["infuse*"]
+
