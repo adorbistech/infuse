@@ -32,7 +32,7 @@ COPY --from=builder /build/dist/*.whl /tmp/
 
 # Install application and production runtime dependencies
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir /tmp/*.whl uvicorn "mcp>=1.0.0" && \
+    pip install --no-cache-dir /tmp/*.whl uvicorn "mcp>=1.0.0,<2.0.0" && \
     rm -rf /tmp/*.whl
 
 # Switch to unprivileged non-root user
