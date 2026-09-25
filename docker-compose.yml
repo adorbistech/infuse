@@ -1,0 +1,73 @@
+# ==============================================================================
+# INFUSE — Execution Intelligence: Production Docker Compose Specification
+# Provides end-to-end orchestration for Backend API and Web Dashboard UI
+# ==============================================================================
+
+version: "3.8"
+
+services:
+  # ----------------------------------------------------------------------------
+  # INFUSE Backend API & Execution Intelligence Engine
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: infuse-backend:latest
+    container_name: infuse-backend
+    restart: unless-stopped
+    ports:
+      - "${INFUSE_PORT:-8000}:8000"
+    environment:
+      - INFUSE_HOST=0.0.0.0
+      - INFUSE_PORT=8000
+      - INFUSE_ENVIRONMENT=${INFUSE_ENVIRONMENT:-production}
+      - INFUSE_LOG_LEVEL=${INFUSE_LOG_LEVEL:-INFO}
+      - INFUSE_WORKERS=${INFUSE_WORKERS:-1}
+      - INFUSE_CORS_ORIGINS=${INFUSE_CORS_ORIGINS:-*}
+      - INFUSE_ENABLE_METRICS=${INFUSE_ENABLE_METRICS:-true}
+      - INFUSE_ENABLE_READINESS_PROBE=${INFUSE_ENABLE_READINESS_PROBE:-true}
+      - INFUSE_MCP_SERVER_ENABLED=${INFUSE_MCP_SERVER_ENABLED:-false}
+    healthcheck:
+      test: ["CMD-SHELL", "python3 -c \"import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').getcode() == 200 else 1)\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+    networks:
+      - infuse-net
+    security_opt:
+      - no-new-privileges:true
+    read_only: false
+    tmpfs:
+      - /tmp
+
+  # ----------------------------------------------------------------------------
+  # INFUSE Web Dashboard UI (Static SPA + Reverse Proxy)
+  # ----------------------------------------------------------------------------
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    image: infuse-frontend:latest
+    container_name: infuse-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://127.0.0.1:3000/ || exit 1"]
+      interval: 15s
+      timeout: 3s
+      retries: 3
+      start_period: 3s
+    networks:
+      - infuse-net
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  infuse-net:
+    driver: bridge
