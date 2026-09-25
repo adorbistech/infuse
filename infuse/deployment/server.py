@@ -110,9 +110,7 @@ def create_production_app(
 
     # 3. FastMCP Streamable HTTP Server Setup
     mcp_server = create_mcp_server()
-    mcp_server.settings.transport_security.allowed_hosts.extend([
-        "*", "testserver", "testserver:*", "localhost:*", "127.0.0.1:*"
-    ])
+    mcp_server.settings.transport_security.enable_dns_rebinding_protection = False
     mcp_app = mcp_server.streamable_http_app()
 
     @asynccontextmanager
