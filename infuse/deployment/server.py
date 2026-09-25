@@ -142,13 +142,16 @@ def run_production_server(
     """Entrypoint to run the INFUSE production HTTP server."""
     cfg = config or load_deployment_config()
 
+    log_level_str = cfg.log_level.value if hasattr(cfg.log_level, "value") else str(cfg.log_level)
+    env_str = cfg.environment.value if hasattr(cfg.environment, "value") else str(cfg.environment)
+
     logging.basicConfig(
-        level=getattr(logging, cfg.log_level.value, logging.INFO),
+        level=getattr(logging, log_level_str.upper(), logging.INFO),
         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
     )
 
     logger.info(
-        f"Starting INFUSE Production Server v{__version__} on {cfg.host}:{cfg.port} [{cfg.environment.value}]"
+        f"Starting INFUSE Production Server v{__version__} on {cfg.host}:{cfg.port} [{env_str}]"
     )
 
     app = create_production_app(config=cfg)
@@ -160,7 +163,7 @@ def run_production_server(
             app=app,
             host=cfg.host,
             port=cfg.port,
-            log_level=cfg.log_level.value.lower(),
+            log_level=log_level_str.lower(),
             timeout_graceful_shutdown=int(cfg.graceful_shutdown_timeout_sec),
             access_log=True,
         )
