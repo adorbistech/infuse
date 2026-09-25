@@ -8,16 +8,19 @@ import logging
 import signal
 import sys
 import time
+import os
+from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import JSONResponse
+from starlette.responses import JSONResponse, PlainTextResponse
 from starlette.routing import Mount, Route
 
 from infuse.api.app import CorrelationIdMiddleware, create_app as create_base_api_app
 from infuse.chatgpt.router import create_chatgpt_router
+from infuse.mcp.server import create_mcp_server
 from infuse.api.services.default import (
     DefaultEventService,
     DefaultExecutionService,
@@ -98,14 +101,37 @@ def create_production_app(
         }
         return JSONResponse(content=safe_info, status_code=200)
 
-    # Add extra routes to the base application router
+    async def openai_challenge_endpoint(request: Request) -> PlainTextResponse:
+        """OpenAI Apps domain challenge verification endpoint."""
+        token = os.getenv("OPENAI_APPS_CHALLENGE_TOKEN")
+        if not token:
+            return PlainTextResponse("OpenAI challenge not configured", status_code=404)
+        return PlainTextResponse(token, status_code=200, media_type="text/plain")
+
+    # 3. FastMCP Streamable HTTP Server Setup
+    mcp_server = create_mcp_server()
+    mcp_server.settings.transport_security.allowed_hosts.extend([
+        "*", "testserver", "testserver:*", "localhost:*", "127.0.0.1:*"
+    ])
+    mcp_app = mcp_server.streamable_http_app()
+
+    @asynccontextmanager
+    async def production_lifespan(app: Starlette):
+        async with mcp_server.session_manager.run():
+            yield
+
+    base_app.router.lifespan_context = production_lifespan
+
+    # 4. Attach routes to base router
     chatgpt_router = create_chatgpt_router()
     base_app.router.routes.extend([
         Route("/ready", endpoint=ready_endpoint, methods=["GET"]),
         Route("/v1/ready", endpoint=ready_endpoint, methods=["GET"]),
         Route("/v1/info", endpoint=info_endpoint, methods=["GET"]),
+        Route("/.well-known/openai-apps-challenge", endpoint=openai_challenge_endpoint, methods=["GET"]),
         Mount("/chatgpt", app=chatgpt_router),
     ])
+    base_app.router.routes.extend(mcp_app.routes)
 
     return base_app
 

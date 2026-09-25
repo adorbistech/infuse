@@ -8,6 +8,7 @@ invocations are performed directly in the MCP layer.
 import uuid
 from typing import Any, Dict, List, Optional, Union
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ToolAnnotations
 
 from infuse.contracts.control import ControlResult, ControlStatus
 from infuse.contracts.events import EventSource, EventType, ExecutionEvent
@@ -58,6 +59,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
             "Returns canonical execution results including cost, token metrics, "
             "governor decisions, and execution state."
         ),
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_execute(
         task_description: str,
@@ -97,6 +103,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_get_execution",
         description="Retrieve summary telemetry and status for an execution by ID.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_get_execution(execution_id: str) -> Dict[str, Any]:
         """Get execution summary view model."""
@@ -110,6 +121,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_get_execution_state",
         description="Inspect the current evaluated execution state (e.g. NORMAL, RUNAWAY, COST_PRESSURE) and reason codes.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_get_execution_state(execution_id: str) -> Dict[str, Any]:
         """Get execution state snapshot."""
@@ -123,6 +139,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_get_execution_result",
         description="Retrieve the execution result or telemetry summary for an execution.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_get_execution_result(execution_id: str) -> Dict[str, Any]:
         """Get execution result / summary."""
@@ -136,6 +157,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_list_executions",
         description="List and filter executions history across state, agent, and query parameters.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_list_executions(
         query: Optional[str] = None,
@@ -161,6 +187,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_list_events",
         description="List telemetry and lifecycle timeline events for a given execution ID.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_list_events(execution_id: str) -> Dict[str, Any]:
         """List timeline events for an execution."""
@@ -178,6 +209,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_publish_event",
         description="Publish an execution telemetry event adhering to the canonical Block 14 event envelope.",
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_publish_event(
         execution_id: str,
@@ -208,6 +244,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_get_policy",
         description="Retrieve a governance policy by ID, or get the currently active governance policy if policy_id is omitted.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_get_policy(policy_id: Optional[str] = None) -> Dict[str, Any]:
         """Get governance policy."""
@@ -241,6 +282,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_list_policies",
         description="List all available governance policies and identify the active policy.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_list_policies() -> Dict[str, Any]:
         """List all configured governance policies."""
@@ -254,6 +300,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_update_policy",
         description="Create or update a governance policy configuration.",
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_update_policy(
         policy_id: str,
@@ -270,6 +321,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
     @mcp.tool(
         name="infuse_get_governor_decision",
         description="Inspect Governor decisions, regulation actions (CONTINUE, STOP, THROTTLE, OPTIMIZE, SWITCH), and reason codes.",
+        annotations=ToolAnnotations(
+            readOnlyHint=True,
+            destructiveHint=False,
+            openWorldHint=False,
+        ),
     )
     def infuse_get_governor_decision(execution_id: str) -> Dict[str, Any]:
         """Get governor decision for execution."""
@@ -285,6 +341,11 @@ def register_tools(mcp: FastMCP, client: InfuseClient) -> None:
         description=(
             "Dispatch an operational control command (STOP, THROTTLE, SWITCH, CONTINUE) "
             "to an active execution strictly through the Execution Control Boundary."
+        ),
+        annotations=ToolAnnotations(
+            readOnlyHint=False,
+            destructiveHint=True,
+            openWorldHint=False,
         ),
     )
     def infuse_control(
