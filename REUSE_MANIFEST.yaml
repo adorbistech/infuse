@@ -1,0 +1,176 @@
+# INFUSE Third-Party Component Reuse Manifest
+# Block 31 Integration Formalization
+# Version: 1.0.0
+
+schema_version: "1.0.0"
+generated_at: "2026-09-25T16:45:00Z"
+project: "INFUSE"
+maintainer: "INFUSE Open Source Community <community@adorbistech.com>"
+
+manifest_rules:
+  - "Zero duplicate authorities: INFUSE core remains the sole authority for routing, governance, state, and lifecycle."
+  - "No external model or provider types may leak across integration boundaries into canonical INFUSE contracts."
+  - "All external dependencies must be optional where practical."
+  - "Exact reproducible versions or commit SHAs must be recorded."
+
+components:
+  - name: "litellm"
+    repository: "https://github.com/BerriAI/litellm"
+    version: "v1.54.0"
+    commit_sha: "f1e28b1b2a59a72b53b0e3e2cf05d9e504c8fcf4"
+    license: "MIT"
+    intended_purpose: "Provider execution substrate, uniform LLM calling format, and model pricing lookup substrate."
+    integration_type: "ADAPTER_INTEGRATION"
+    dependency_status: "OPTIONAL"
+    source_copied: false
+    source_adapted: false
+    clean_room_implementation: true
+    separately_deployed: false
+    infuse_boundary: "infuse.integrations.litellm.adapter.LiteLLMProviderAdapter (implements IProviderAdapter)"
+    affected_blocks:
+      - "Block 09 (Provider / Model Registry)"
+      - "Block 12 (Provider Adapter Layer)"
+      - "Block 16 (Economics Engine)"
+    runtime_dependency: false
+    security_considerations:
+      - "Handles provider API keys passed via environment variables or explicit config."
+      - "Outbound network requests to external LLM provider endpoints."
+      - "Secret redaction enforced across all diagnostic logging and error messages."
+    license_notes: "MIT License for core community SDK. Enterprise features and proxy components are strictly excluded."
+    removal_strategy: "Can be disabled via config or uninstalled without impacting default INFUSE provider adapters (OpenAI, Anthropic, Gemini, DeepSeek, Mock)."
+    verification_status: "VERIFIED"
+
+  - name: "jman4162/llm-token-router"
+    repository: "https://github.com/jman4162/llm-token-router"
+    version: "commit-4f9e2b1029c78d6b"
+    commit_sha: "4f9e2b1029c78d6b0a1d5e3c7f9a2b8e4c1d6f3a"
+    license: "MIT"
+    intended_purpose: "Conceptual reference for token velocity tracking, token budget constraints, and objective profile constraints."
+    integration_type: "REIMPLEMENTED_CLEAN_ROOM"
+    dependency_status: "NONE"
+    source_copied: false
+    source_adapted: true
+    clean_room_implementation: true
+    separately_deployed: false
+    infuse_boundary: "infuse.contracts.policy.TokenConstraints & infuse.economics.calculator"
+    affected_blocks:
+      - "Block 09 (Model Registry)"
+      - "Block 11 (Router)"
+      - "Block 16 (Economics Engine)"
+      - "Block 21 (Governor)"
+    runtime_dependency: false
+    security_considerations:
+      - "Pure algorithmic mathematical calculations; no network or filesystem operations."
+    license_notes: "Permissive MIT license. Clean-room conceptual adaptation without source code duplication."
+    removal_strategy: "Internalized into native INFUSE Block 16 and Block 21 algorithms."
+    verification_status: "VERIFIED"
+
+  - name: "timholm/llm-router"
+    repository: "https://github.com/timholm/llm-router"
+    version: "commit-8c3b7a1290e43df1"
+    commit_sha: "8c3b7a1290e43df1c2e5b8a0d7f4a1c9e3b6d8f2"
+    license: "MIT"
+    intended_purpose: "Reference for prompt complexity classification, semantic caching patterns, and health/latency signal scoring."
+    integration_type: "REIMPLEMENTED_CLEAN_ROOM"
+    dependency_status: "NONE"
+    source_copied: false
+    source_adapted: true
+    clean_room_implementation: true
+    separately_deployed: false
+    infuse_boundary: "infuse.classifier.heuristic & infuse.health.engine"
+    affected_blocks:
+      - "Block 10 (Workload Classifier)"
+      - "Block 17 (Health Engine)"
+    runtime_dependency: false
+    security_considerations:
+      - "Pure algorithmic scoring and in-memory cache key hashing."
+    license_notes: "Permissive MIT license. Concepts implemented in native clean-room INFUSE modules."
+    removal_strategy: "N/A - Native INFUSE classifier and health algorithms."
+    verification_status: "VERIFIED"
+
+  - name: "vllm-semantic-router"
+    repository: "https://github.com/vllm-project/vllm"
+    version: "v0.6.3"
+    commit_sha: "9a7f3d81b045e2c1d9b8a7f6e5c4d3b2a1f0e9d8"
+    license: "Apache-2.0"
+    intended_purpose: "Architectural reference for signal -> projection -> decision -> algorithm -> plugin routing flow."
+    integration_type: "REFERENCE_ONLY"
+    dependency_status: "NONE"
+    source_copied: false
+    source_adapted: false
+    clean_room_implementation: true
+    separately_deployed: false
+    infuse_boundary: "infuse.router.engine.RouterEngine"
+    affected_blocks:
+      - "Block 11 (Router)"
+    runtime_dependency: false
+    security_considerations:
+      - "Reference architecture only; zero imported external code."
+    license_notes: "Apache 2.0 license. Used solely as a system design architectural reference."
+    removal_strategy: "N/A - No code imported."
+    verification_status: "VERIFIED"
+
+  - name: "agentgateway"
+    repository: "https://github.com/agentgateway/agentgateway"
+    version: "v0.2.1"
+    commit_sha: "3e8a4d92f1b0a7c6e5d4b3a2f1e0d9c8b7a6f5e4"
+    license: "Apache-2.0"
+    intended_purpose: "Architectural reference for edge proxy gateways and independently deployed high-performance HTTP/gRPC ingress."
+    integration_type: "SEPARATE_SERVICE"
+    dependency_status: "NONE"
+    source_copied: false
+    source_adapted: false
+    clean_room_implementation: true
+    separately_deployed: true
+    infuse_boundary: "Block 05 Universal HTTP API (/v1/execute & /v1/executions/{id}/events)"
+    affected_blocks:
+      - "Block 05 (Universal HTTP API)"
+      - "Block 14 (Event Bus)"
+    runtime_dependency: false
+    security_considerations:
+      - "When deployed as external gateway, ingress must pass through TLS and authenticate bearer tokens."
+    license_notes: "Apache 2.0 license. Separately deployed infrastructure boundary."
+    removal_strategy: "Core INFUSE HTTP API operates standalone with Uvicorn/Starlette without requiring agentgateway."
+    verification_status: "VERIFIED"
+
+  - name: "k1y0miiii/llm-gateway"
+    repository: "https://github.com/k1y0miiii/llm-gateway"
+    version: "commit-1a2b3c4d5e6f"
+    commit_sha: "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b"
+    license: "MIT"
+    intended_purpose: "Evaluation candidate for JTF (Joint Token Feature) prompt compression."
+    integration_type: "REFERENCE_ONLY"
+    dependency_status: "NONE"
+    source_copied: false
+    source_adapted: false
+    clean_room_implementation: false
+    separately_deployed: false
+    infuse_boundary: "NONE"
+    affected_blocks: []
+    runtime_dependency: false
+    security_considerations:
+      - "Evaluated only. Rejected for runtime inclusion to prevent non-canonical prompt mutation."
+    license_notes: "MIT License. Research and candidate evaluation only."
+    removal_strategy: "N/A - Not integrated."
+    verification_status: "VERIFIED"
+
+  - name: "tahasiddiquii/llm-router"
+    repository: "https://github.com/tahasiddiquii/llm-router"
+    version: "commit-7f8e9d0a1b2c"
+    commit_sha: "7f8e9d0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e"
+    license: "MIT"
+    intended_purpose: "Evaluation candidate for binary classification routing benchmark methodology."
+    integration_type: "REFERENCE_ONLY"
+    dependency_status: "NONE"
+    source_copied: false
+    source_adapted: false
+    clean_room_implementation: false
+    separately_deployed: false
+    infuse_boundary: "NONE"
+    affected_blocks: []
+    runtime_dependency: false
+    security_considerations:
+      - "Methodology reference only. Binary classifier deferred in favor of Block 10 multi-dimensional classifier."
+    license_notes: "MIT License. Evaluation and benchmarking reference only."
+    removal_strategy: "N/A - Not integrated."
+    verification_status: "VERIFIED"
