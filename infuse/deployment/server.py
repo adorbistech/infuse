@@ -14,9 +14,10 @@ from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
-from starlette.routing import Route
+from starlette.routing import Mount, Route
 
 from infuse.api.app import CorrelationIdMiddleware, create_app as create_base_api_app
+from infuse.chatgpt.router import create_chatgpt_router
 from infuse.api.services.default import (
     DefaultEventService,
     DefaultExecutionService,
@@ -98,10 +99,12 @@ def create_production_app(
         return JSONResponse(content=safe_info, status_code=200)
 
     # Add extra routes to the base application router
+    chatgpt_router = create_chatgpt_router()
     base_app.router.routes.extend([
         Route("/ready", endpoint=ready_endpoint, methods=["GET"]),
         Route("/v1/ready", endpoint=ready_endpoint, methods=["GET"]),
         Route("/v1/info", endpoint=info_endpoint, methods=["GET"]),
+        Mount("/chatgpt", app=chatgpt_router),
     ])
 
     return base_app
