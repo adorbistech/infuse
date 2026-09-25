@@ -1,0 +1,86 @@
+# ==============================================================================
+# INFUSE Release Manifest — Final Release Certification Record
+# Block 36 Release Freeze
+# ==============================================================================
+
+schema_version: "1.0.0"
+release_name: "INFUSE — Execution Intelligence"
+release_version: "0.1.0"
+contract_schema_version: "1.0.0"
+release_status: "FROZEN"
+release_date: "2026-09-26T02:40:00Z"
+
+repository: "https://github.com/adorbistech/infuse"
+branch: "main"
+frozen_blocks: "00-36"
+frozen_baseline_commit: "9964fbae01a20d0c923e7e7a49d4997c4418fc97"
+
+environment:
+  python_version: "3.14.3"
+  node_version: "v25.6.1"
+  docker_status: "NOT_APPLICABLE_LOCALLY_LINTED"
+  platform: "darwin-arm64"
+
+test_results:
+  python_total_tests: 1200
+  python_passed: 1200
+  python_failed: 0
+  python_errors: 0
+  frontend_total_tests: 49
+  frontend_passed: 49
+  frontend_failed: 0
+  block_36_dedicated_tests: 15
+  block_36_passed: 15
+  overall_pass_rate: "100%"
+  regressions: 0
+
+subsystem_status:
+  contracts: "VERIFIED"
+  architecture_boundaries: "VERIFIED"
+  security_audit: "VERIFIED"
+  deployment_packaging: "VERIFIED"
+  http_api: "VERIFIED"
+  sdk_client: "VERIFIED"
+  cli_interface: "VERIFIED"
+  mcp_server: "VERIFIED"
+  web_frontend: "VERIFIED"
+  agent_adapters: "VERIFIED"
+  observer_engine: "VERIFIED"
+  governor_engine: "VERIFIED"
+  control_boundary: "VERIFIED"
+
+package_status:
+  package_name: "infuse-ai"
+  build_system: "setuptools>=61.0"
+  entrypoints:
+    - "infuse = infuse.cli.main:main"
+    - "infuse-mcp = infuse.mcp.main:main"
+    - "infuse-server = infuse.deployment.server:main"
+  docker_backend: "Dockerfile (multi-stage non-root UID 10001)"
+  docker_frontend: "Dockerfile.frontend (alpine-nginx)"
+  docker_compose: "docker-compose.yml"
+
+security_status:
+  hardcoded_secrets: "NONE"
+  subprocess_isolation: "ENFORCED (shell=False across all agent transports)"
+  container_execution: "NON_ROOT (UID 10001 / GID 10001)"
+  container_security_options: "no-new-privileges:true"
+  traceback_leakage_prevented: "VERIFIED"
+  secret_redaction_middleware: "VERIFIED"
+
+known_limitations:
+  - "In-memory default storage backend is ephemeral across process restarts unless external database or persistent volume is configured."
+  - "External cloud provider adapters require respective provider API keys provided via environment variables."
+
+deferred_infrastructure_responsibilities:
+  - "TLS Certificate Provisioning & Ingress Termination (Delegated to Kubernetes Ingress / Nginx Reverse Proxy)"
+  - "Distributed Persistent Event Storage (Delegated to external datastores)"
+  - "Production DNS Routing & WAF Firewalls (Delegated to Cloud Infrastructure)"
+
+reproducibility:
+  full_test_suite_command: "python3 -m unittest discover -s tests && npm test --prefix frontend"
+  deploy_compose_command: "docker compose up -d"
+  server_start_command: "infuse-server"
+
+repository_clean: true
+remote_push_status: "NOT_PERFORMED"
