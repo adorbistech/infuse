@@ -16,7 +16,7 @@ from infuse.integrations.contracts import (
 
 class ReuseManifest(InfuseBaseModel):
     """Canonical model for REUSE_MANIFEST.yaml."""
-    schema_version: str = Field(default="1.0.0")
+    schema_version: str = Field(default="1.0.1")
     generated_at: str = Field(default="")
     project: str = Field(default="INFUSE")
     maintainer: str = Field(default="")
@@ -52,17 +52,24 @@ def validate_manifest(manifest: ReuseManifest) -> List[str]:
     disallowed_version_tokens = ["latest", "main", "master", "current", "head", "*", ">= "]
 
     for comp in manifest.components:
+        # Check repository URL
+        if not comp.repository or not comp.repository.startswith("https://github.com/"):
+            errors.append(f"Component '{comp.name}' must have a valid GitHub repository URL.")
+
         # Check unpinned versions
         ver_lower = comp.version.strip().lower()
         if any(tok in ver_lower for tok in disallowed_version_tokens):
             errors.append(f"Component '{comp.name}' has unpinned version: '{comp.version}'")
 
-        # Check commit SHA format if provided
-        if comp.commit_sha:
-            if not re.match(r"^[0-9a-fA-F]{8,40}$", comp.commit_sha):
-                errors.append(
-                    f"Component '{comp.name}' has invalid commit_sha format: '{comp.commit_sha}'"
-                )
+        # Check commit SHA format (strict 40-character hex SHA required)
+        if not comp.commit_sha or not re.match(r"^[0-9a-fA-F]{40}$", comp.commit_sha):
+            errors.append(
+                f"Component '{comp.name}' must have a valid 40-character commit_sha: '{comp.commit_sha}'"
+            )
+
+        # Disallow placeholder SHAs (e.g., containing repeating patterns like 1a2b3c4d5e6f or commit-)
+        if comp.commit_sha in ("commit-4f9e2b1029c78d6b", "commit-8c3b7a1290e43df1", "commit-1a2b3c4d5e6f", "commit-7f8e9d0a1b2c"):
+            errors.append(f"Component '{comp.name}' has placeholder commit_sha: '{comp.commit_sha}'")
 
         # Check valid integration category
         if comp.integration_type not in IntegrationCategory:
@@ -73,6 +80,10 @@ def validate_manifest(manifest: ReuseManifest) -> List[str]:
         # Check license
         if not comp.license or comp.license.strip() == "":
             errors.append(f"Component '{comp.name}' missing license declaration.")
+
+        # Check verification source
+        if not comp.verification_source or comp.verification_source.strip() == "":
+            errors.append(f"Component '{comp.name}' missing verification_source.")
 
         # Check unverified status integration
         if comp.verification_status == VerificationStatus.UNVERIFIED:

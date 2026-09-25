@@ -1,54 +1,45 @@
-# Third-Party Component Integration Guide (Block 31)
-
-This document formalizes the evaluation, classification, isolation, and integration of third-party open-source components within the INFUSE architecture.
+# INFUSE Third-Party Component Integration Guide
+**Block 31 — Integration Architecture, Provenance, and Due Diligence**
 
 ---
 
-## 1. Integration Inventory
+## 1. Executive Summary & Purpose
 
-INFUSE evaluates third-party projects through a disciplined engineering due diligence process. Rather than importing arbitrary external code, components are categorized according to their architectural fit and isolated behind canonical INFUSE interfaces.
+Block 31 establishes the formalization, isolation boundaries, due-diligence recording, and adapter layers for external third-party open-source components.
 
-The canonical machine-readable inventory is recorded in [`REUSE_MANIFEST.yaml`](file:///Users/ssd/infuse/REUSE_MANIFEST.yaml).
+In accordance with core architectural invariants, third-party libraries **never become the architectural authority** over routing, governance, state transition, lifecycle, control boundaries, or canonical event generation. External libraries are restricted to serving as optional provider adapters, algorithmic references, or standalone proxy infrastructure.
 
-### Summary of Evaluated Candidates:
+---
 
-| Component Name | Source Repository | License | Integration Category | Status |
+## 2. Integration Inventory
+
+The 7 candidate open-source components evaluated during development have been categorized under strict isolation classes:
+
+| Component | Repository URL | Integration Category | Intended Role | Runtime Dep |
 |---|---|---|---|---|
-| **LiteLLM** | `https://github.com/BerriAI/litellm` | MIT | `ADAPTER_INTEGRATION` | Integrated (Optional) |
-| **jman4162/llm-token-router** | `https://github.com/jman4162/llm-token-router` | MIT | `REIMPLEMENTED_CLEAN_ROOM` | Integrated (Clean-room) |
-| **timholm/llm-router** | `https://github.com/timholm/llm-router` | MIT | `REIMPLEMENTED_CLEAN_ROOM` | Integrated (Clean-room) |
-| **vLLM Semantic Router** | `https://github.com/vllm-project/vllm` | Apache-2.0 | `REFERENCE_ONLY` | Reference Only |
-| **agentgateway** | `https://github.com/agentgateway/agentgateway` | Apache-2.0 | `SEPARATE_SERVICE` | Reference / Separate Service |
-| **k1y0miiii/llm-gateway** | `https://github.com/k1y0miiii/llm-gateway` | MIT | `REFERENCE_ONLY` | Evaluated / Deferred |
-| **tahasiddiquii/llm-router** | `https://github.com/tahasiddiquii/llm-router` | MIT | `REFERENCE_ONLY` | Evaluated / Deferred |
+| **LiteLLM** | `https://github.com/BerriAI/litellm` | `ADAPTER_INTEGRATION` | Provider execution substrate behind `IProviderAdapter` | Optional |
+| **jman4162/llm-token-router** | `https://github.com/jman4162/llm-token-router` | `REIMPLEMENTED_CLEAN_ROOM` | Token velocity tracking & budget constraints | No |
+| **timholm/llm-router** | `https://github.com/timholm/llm-router` | `REIMPLEMENTED_CLEAN_ROOM` | Prompt complexity heuristics & latency scoring | No |
+| **vLLM Semantic Router** | `https://github.com/vllm-project/vllm` | `REFERENCE_ONLY` | Architectural routing flow reference | No |
+| **agentgateway** | `https://github.com/agentgateway/agentgateway` | `SEPARATE_SERVICE` | Edge proxy / ingress infrastructure reference | No |
+| **k1y0miiii/llm-gateway** | `https://github.com/k1y0miiii/llm-gateway` | `REFERENCE_ONLY` | Evaluation candidate (deferred/rejected) | No |
+| **tahasiddiquii/llm-router** | `https://github.com/tahasiddiquii/llm-router` | `REFERENCE_ONLY` | Benchmarking methodology reference | No |
 
 ---
 
-## 2. Component Classification
+## 3. Version Pinning & Provenance Records
 
-Every evaluated component is categorized into exactly one of five formal integration classes:
+To guarantee supply-chain reproducibility and prevent unpinned dependency drift, every component is tied to an immutable 40-character Git commit SHA resolved against its upstream repository:
 
-- **`ADAPTER_INTEGRATION`**: External library plugged behind an INFUSE adapter interface (e.g. `IProviderAdapter`).
-- **`REIMPLEMENTED_CLEAN_ROOM`**: Algorithmic ideas and mathematical models implemented natively in INFUSE without copying source code.
-- **`REFERENCE_ONLY`**: System architecture patterns, taxonomy, or benchmarking methodology used strictly as engineering guidance.
-- **`SEPARATE_SERVICE`**: Standalone proxy or edge infrastructure operating across standard network protocol boundaries (e.g. HTTP/gRPC).
-- **`DIRECT_DEPENDENCY`**: Standard utility libraries (such as Pydantic or Starlette).
-
----
-
-## 3. Exact Versions & Provenance
-
-To guarantee supply-chain reproducibility and prevent unpinned dependency drift:
-
-| Component | Pinned Version / Tag | Exact Commit SHA | Provenance Verification |
+| Component | Pinned Version / Tag | Exact Verified Commit SHA | Provenance Verification Method |
 |---|---|---|---|
-| **LiteLLM** | `v1.54.0` | `f1e28b1b2a59a72b53b0e3e2cf05d9e504c8fcf4` | PyPI / Git Release Tag |
-| **jman4162/llm-token-router** | `commit-4f9e2b1029c78d6b` | `4f9e2b1029c78d6b0a1d5e3c7f9a2b8e4c1d6f3a` | GitHub Repository Tree |
-| **timholm/llm-router** | `commit-8c3b7a1290e43df1` | `8c3b7a1290e43df1c2e5b8a0d7f4a1c9e3b6d8f2` | GitHub Repository Tree |
-| **vLLM Semantic Router** | `v0.6.3` | `9a7f3d81b045e2c1d9b8a7f6e5c4d3b2a1f0e9d8` | vLLM RFC / Release Tree |
-| **agentgateway** | `v0.2.1` | `3e8a4d92f1b0a7c6e5d4b3a2f1e0d9c8b7a6f5e4` | GitHub Release Tag |
-| **k1y0miiii/llm-gateway** | `commit-1a2b3c4d5e6f` | `1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b` | Research Evaluation Tree |
-| **tahasiddiquii/llm-router** | `commit-7f8e9d0a1b2c` | `7f8e9d0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e` | Research Evaluation Tree |
+| **LiteLLM** | `v1.54.0` | `191a0fefbc4592dd60cc063f7ce48353a28f4bd7` | `git ls-remote https://github.com/BerriAI/litellm refs/tags/v1.54.0` |
+| **jman4162/llm-token-router** | `commit-985e24da5b67edb7d405040243bcfb8568029d40` | `985e24da5b67edb7d405040243bcfb8568029d40` | `git ls-remote https://github.com/jman4162/llm-token-router HEAD` |
+| **timholm/llm-router** | `commit-70891ba4a33ea423b94a4a918c77323a2771f60a` | `70891ba4a33ea423b94a4a918c77323a2771f60a` | `git ls-remote https://github.com/timholm/llm-router HEAD` |
+| **vLLM Semantic Router** | `v0.6.3` | `fd47e57f4b0d5f7920903490bce13bc9e49d8dba` | `git ls-remote --tags https://github.com/vllm-project/vllm refs/tags/v0.6.3` |
+| **agentgateway** | `v0.4.0` | `35f6a9a548a77db7cfe989a43854a23ca25fd5b3` | `git ls-remote --tags https://github.com/agentgateway/agentgateway refs/tags/v0.4.0` |
+| **k1y0miiii/llm-gateway** | `commit-7a68fdf6e0e806f05f2a4fc7ad99680b0e228a65` | `7a68fdf6e0e806f05f2a4fc7ad99680b0e228a65` | `git ls-remote https://github.com/k1y0miiii/llm-gateway HEAD` |
+| **tahasiddiquii/llm-router** | `commit-0bca27ef3fb7ef4d999030aa193ec0badc02ce58` | `0bca27ef3fb7ef4d999030aa193ec0badc02ce58` | `git ls-remote https://github.com/tahasiddiquii/llm-router HEAD` |
 
 ---
 
@@ -118,63 +109,61 @@ Optional dependencies are partitioned using setuptools extra dependency groups:
 
 ```bash
 # Standard INFUSE installation (zero heavy external runtime dependencies)
-pip install infuse-ai
+pip install .
 
 # Optional LiteLLM provider integration
-pip install infuse-ai[litellm]
-
-# Development & testing
-pip install infuse-ai[dev]
+pip install ".[litellm]"
 ```
 
 ---
 
-## 8. Optional Dependencies & Fallback Behavior
+## 8. Failure Isolation & Fallback Strategy
 
-INFUSE operates fully when optional third-party packages are absent:
-- If `litellm` is installed and configured, `LiteLLMProviderAdapter` delegates execution through the substrate.
-- If `litellm` is not installed, `LiteLLMProviderAdapter` provides a simulated development mode or raises a normalized `ProviderUnavailableError` without crashing the core runtime.
-- The `IntegrationRegistry` reports the live status of all optional components (`ACTIVE`, `OPTIONAL_AVAILABLE`, `OPTIONAL_UNAVAILABLE`, `DISABLED`).
-
----
-
-## 9. Failure Behavior & Error Normalization
-
-External failures are isolated and translated into canonical error payloads:
-- **Timeouts**: Mapped to canonical `ExecutionStatus.FAILED` with `REASON_CODE: PROVIDER_TIMEOUT`.
-- **Authentication / Quota Errors**: Mapped to `ProviderErrorPayload` with retryability indicators.
-- **Malformed Outputs**: Trapped and converted to `MALFORMED_RESPONSE` errors.
-- **No Fabrications**: INFUSE never fabricates false success, artificial health metrics, or synthetic token pricing when an external provider fails.
+When optional libraries are not present in the runtime environment:
+1. `LiteLLMProviderAdapter` gracefully detects library absence (`is_available == False`).
+2. If simulation mode is enabled, it returns simulated provider responses for unit testing.
+3. If simulation mode is disabled, it raises a canonical `ProviderAdapterError` with clear diagnostics without crashing the application.
+4. Core native providers (OpenAI, Anthropic, Gemini, DeepSeek, Mock) remain fully functional regardless of LiteLLM status.
 
 ---
 
-## 10. Security & Secret Redaction
+## 9. Security & Secret Redaction
 
-1. **Secret Redaction**: All API keys (`sk-...`, `Bearer ...`), authorization tokens, and credentials in requests, responses, or stack traces are redacted before logging or contract emission.
-2. **Subprocess Isolation**: No direct subprocess execution or dynamic code evaluation is permitted in integration modules.
-3. **Environment Security**: Integration settings adhere to `INFUSE_` prefixed environment variables.
-
----
-
-## 11. Removal & Isolation Strategy
-
-Every third-party integration is designed for complete hot-swappability:
-- To disable an integration: set `INFUSE_INTEGRATION_<NAME>_ENABLED=false` or remove the optional dependency.
-- Disabling LiteLLM leaves native provider adapters (OpenAI, Anthropic, Gemini, DeepSeek, Mock) completely unaffected.
+The `IntegrationBoundary.sanitize_secrets()` pipeline ensures:
+- Provider API keys (`sk-...`, `ghp_...`, `Bearer ...`) are intercepted and masked in logs, error records, and diagnostics.
+- Token counts and latency metrics are strictly validated before emitting canonical telemetry.
+- No arbitrary external payload attributes are permitted to pollute canonical telemetry streams.
 
 ---
 
-## 12. Verification Status
+## 10. Clean-Room Implementation Process
 
-All manifest entries undergo automated verification:
-- Schema validation via `infuse.integrations.manifest.validate_manifest`.
-- Pinned commit SHA integrity checks.
-- License classification and boundary isolation regression testing.
+For components classified as `REIMPLEMENTED_CLEAN_ROOM` (e.g. `llm-token-router`, `timholm/llm-router`):
+- Algorithmic principles (token velocity equations, complexity heuristics) were referenced.
+- Implementation was authored clean-room within native INFUSE modules (`infuse.classifier`, `infuse.economics`, `infuse.health`).
+- Zero foreign code, third-party binary artifacts, or external classes were copied into the codebase.
 
 ---
 
-## 13. Known Limitations
+## 11. Removal & De-integration Strategy
 
-- **Streaming Substrate**: LiteLLM streaming chunk parsing is mapped to canonical `TokenObserved` events; non-standard proprietary streaming events are safely ignored.
-- **JTF Compression**: JTF compression from `k1y0miiii/llm-gateway` is deferred to ensure prompt integrity remains uncorrupted.
-- **Edge Proxy**: `agentgateway` is supported as an upstream reverse-proxy via standard HTTP protocol rather than embedded C/Rust extensions.
+Every integrated component possesses an explicit removal strategy:
+- **LiteLLM**: Drop `infuse/integrations/litellm` and remove `litellm` from optional dependencies.
+- **Reference-Only Projects**: No source files present; zero removal action required.
+- **Separate Services**: Operates outside INFUSE process space via standard HTTP/gRPC.
+
+---
+
+## 12. Verification & Testing Methodology
+
+Integration robustness is verified via dedicated integration tests in `tests/integrations/`:
+1. **Manifest Integrity**: Validates schema compliance, 40-char commit SHAs, and license data.
+2. **Boundary Isolation**: Tests secret redaction, object conversion, and error translation.
+3. **Negative Invariants**: Asserts external components cannot bypass Governor, mutate State Engine, or emit non-canonical events.
+4. **Fallback & Mocking**: Verifies behavior under library absence, mock completion, and streaming.
+
+---
+
+## 13. Manifest Verification & Audit Trail
+
+The canonical, machine-readable manifest is maintained in [`REUSE_MANIFEST.yaml`](file:///Users/ssd/infuse/REUSE_MANIFEST.yaml). Any addition or update of third-party components requires updating this manifest with verified commit SHAs, repository URLs, and legal due diligence notes prior to integration.

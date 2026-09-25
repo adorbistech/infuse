@@ -3,7 +3,8 @@
 Validates:
 - Manifest parsing, schema compliance, and rules
 - Component classification (DIRECT_DEPENDENCY, ADAPTER_INTEGRATION, etc.)
-- Exact version pinning and commit SHA verification
+- Exact version pinning and immutable 40-character commit SHA verification
+- Upstream repository verification and provenance source tracking
 - Zero duplicate authority invariants
 - Boundary isolation and zero object leakage
 - Secret redaction across payloads and errors
@@ -13,6 +14,7 @@ Validates:
 """
 
 import os
+import re
 import unittest
 from unittest.mock import MagicMock, patch
 
@@ -73,7 +75,7 @@ class TestBlock31Integration(unittest.TestCase):
         errors = validate_manifest(self.manifest)
         self.assertEqual(errors, [], f"Manifest validation errors found: {errors}")
 
-    # 3. Exact versions recorded (no latest or unpinned)
+    # 3. Exact versions recorded (no latest, floating, or unpinned)
     def test_03_exact_versions_recorded(self):
         for comp in self.manifest.components:
             self.assertFalse(comp.version.lower().startswith("latest"))
@@ -82,11 +84,18 @@ class TestBlock31Integration(unittest.TestCase):
             self.assertNotEqual(comp.version.strip(), "*")
             self.assertTrue(len(comp.version) > 0)
 
-    # 4. Exact commit SHAs recorded
-    def test_04_exact_commit_shas_recorded(self):
+    # 4. Exact 40-character commit SHAs recorded
+    def test_04_exact_40_char_commit_shas_recorded(self):
         for comp in self.manifest.components:
-            self.assertTrue(len(comp.commit_sha) >= 8)
-            self.assertTrue(all(c in "0123456789abcdefABCDEF" for c in comp.commit_sha))
+            self.assertEqual(
+                len(comp.commit_sha),
+                40,
+                f"Component {comp.name} commit SHA is not 40 characters: {comp.commit_sha}",
+            )
+            self.assertTrue(
+                re.match(r"^[0-9a-fA-F]{40}$", comp.commit_sha),
+                f"Component {comp.name} commit SHA contains non-hex characters: {comp.commit_sha}",
+            )
 
     # 5. License metadata recording
     def test_05_license_metadata_recorded(self):
@@ -115,6 +124,7 @@ class TestBlock31Integration(unittest.TestCase):
     def test_07_verification_status(self):
         for comp in self.manifest.components:
             self.assertEqual(comp.verification_status, VerificationStatus.VERIFIED)
+            self.assertTrue(len(comp.verification_source) > 0)
 
     # 8. Clean-room verification flags
     def test_08_clean_room_flags(self):
@@ -309,18 +319,19 @@ class TestBlock31Integration(unittest.TestCase):
     # 28. Supply-chain validation: Disallow 'latest' version tag
     def test_28_supply_chain_disallow_latest(self):
         bad_manifest = ReuseManifest(
-            schema_version="1.0.0",
+            schema_version="1.0.1",
             project="INFUSE",
             components=[
                 IntegrationComponentInfo(
                     name="bad-package",
                     repository="https://github.com/test/bad",
                     version="latest",
-                    commit_sha="abcdef123456",
+                    commit_sha="1234567890abcdef1234567890abcdef12345678",
                     license="MIT",
                     intended_purpose="Testing",
                     integration_type=IntegrationCategory.ADAPTER_INTEGRATION,
                     infuse_boundary="test.boundary",
+                    verification_source="test source",
                 )
             ],
         )
@@ -330,19 +341,20 @@ class TestBlock31Integration(unittest.TestCase):
     # 29. Supply-chain validation: Disallow unverified active integrations
     def test_29_supply_chain_disallow_unverified_integration(self):
         bad_manifest = ReuseManifest(
-            schema_version="1.0.0",
+            schema_version="1.0.1",
             project="INFUSE",
             components=[
                 IntegrationComponentInfo(
                     name="unverified-dep",
                     repository="https://github.com/test/unverified",
                     version="1.0.0",
-                    commit_sha="abcdef123456",
+                    commit_sha="1234567890abcdef1234567890abcdef12345678",
                     license="MIT",
                     intended_purpose="Testing",
                     integration_type=IntegrationCategory.ADAPTER_INTEGRATION,
                     infuse_boundary="test.boundary",
                     verification_status=VerificationStatus.UNVERIFIED,
+                    verification_source="manual test",
                 )
             ],
         )
@@ -568,11 +580,12 @@ class TestBlock31Integration(unittest.TestCase):
             name="custom-test-plugin",
             repository="https://github.com/custom/plugin",
             version="1.0.0",
-            commit_sha="1234567890abcdef",
+            commit_sha="1234567890abcdef1234567890abcdef12345678",
             license="MIT",
             intended_purpose="Dynamic plugin test",
             integration_type=IntegrationCategory.ADAPTER_INTEGRATION,
             infuse_boundary="custom.boundary",
+            verification_source="custom test",
         )
         reg._custom_components["custom-test-plugin"] = custom
         found = reg.get_component("custom-test-plugin")
@@ -627,6 +640,48 @@ class TestBlock31Integration(unittest.TestCase):
         raw_third_party = {"secret_tokens": [1, 2, 3], "internal_state": "active"}
         norm = IntegrationBoundary.normalize_response(raw_third_party, provider="litellm", model="test")
         self.assertIsNone(norm.raw_response)
+
+    # 53. Verified exact SHAs match known upstream commits
+    def test_53_verified_exact_shas_match_upstream(self):
+        expected_shas = {
+            "litellm": "191a0fefbc4592dd60cc063f7ce48353a28f4bd7",
+            "jman4162/llm-token-router": "985e24da5b67edb7d405040243bcfb8568029d40",
+            "timholm/llm-router": "70891ba4a33ea423b94a4a918c77323a2771f60a",
+            "vllm-semantic-router": "fd47e57f4b0d5f7920903490bce13bc9e49d8dba",
+            "agentgateway": "35f6a9a548a77db7cfe989a43854a23ca25fd5b3",
+            "k1y0miiii/llm-gateway": "7a68fdf6e0e806f05f2a4fc7ad99680b0e228a65",
+            "tahasiddiquii/llm-router": "0bca27ef3fb7ef4d999030aa193ec0badc02ce58",
+        }
+        for name, expected_sha in expected_shas.items():
+            comp = self.registry.get_component(name)
+            self.assertIsNotNone(comp, f"Component {name} not found")
+            self.assertEqual(
+                comp.commit_sha,
+                expected_sha,
+                f"Component {name} SHA mismatch. Expected {expected_sha}, got {comp.commit_sha}",
+            )
+
+    # 54. Negative test: Disallow placeholder commit SHAs in manifest validation
+    def test_54_disallow_placeholder_shas(self):
+        bad_manifest = ReuseManifest(
+            schema_version="1.0.1",
+            project="INFUSE",
+            components=[
+                IntegrationComponentInfo(
+                    name="placeholder-dep",
+                    repository="https://github.com/test/placeholder",
+                    version="1.0.0",
+                    commit_sha="commit-4f9e2b1029c78d6b",
+                    license="MIT",
+                    intended_purpose="Testing",
+                    integration_type=IntegrationCategory.ADAPTER_INTEGRATION,
+                    infuse_boundary="test.boundary",
+                    verification_source="test source",
+                )
+            ],
+        )
+        errors = validate_manifest(bad_manifest)
+        self.assertTrue(any("placeholder" in e.lower() or "commit_sha" in e.lower() for e in errors))
 
 
 if __name__ == "__main__":

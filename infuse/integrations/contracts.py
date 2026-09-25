@@ -53,6 +53,7 @@ class IntegrationComponentInfo(InfuseBaseModel):
     license_notes: str = Field(default="", description="License due diligence notes.")
     removal_strategy: str = Field(default="", description="Strategy for safe isolation/removal.")
     verification_status: VerificationStatus = Field(default=VerificationStatus.VERIFIED, description="Verification status.")
+    verification_source: str = Field(default="", description="Upstream Git resolution provenance source.")
 
 
 class IntegrationTelemetry(InfuseBaseModel):

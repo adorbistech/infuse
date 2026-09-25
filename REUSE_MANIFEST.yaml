@@ -1,9 +1,9 @@
 # INFUSE Third-Party Component Reuse Manifest
-# Block 31 Integration Formalization
-# Version: 1.0.0
+# Block 31 Integration Formalization & Provenance
+# Version: 1.0.1
 
-schema_version: "1.0.0"
-generated_at: "2026-09-25T16:45:00Z"
+schema_version: "1.0.1"
+generated_at: "2026-09-25T17:10:00Z"
 project: "INFUSE"
 maintainer: "INFUSE Open Source Community <community@adorbistech.com>"
 
@@ -11,13 +11,13 @@ manifest_rules:
   - "Zero duplicate authorities: INFUSE core remains the sole authority for routing, governance, state, and lifecycle."
   - "No external model or provider types may leak across integration boundaries into canonical INFUSE contracts."
   - "All external dependencies must be optional where practical."
-  - "Exact reproducible versions or commit SHAs must be recorded."
+  - "Exact reproducible 40-character Git commit SHAs verified against upstream repositories must be recorded."
 
 components:
   - name: "litellm"
     repository: "https://github.com/BerriAI/litellm"
     version: "v1.54.0"
-    commit_sha: "f1e28b1b2a59a72b53b0e3e2cf05d9e504c8fcf4"
+    commit_sha: "191a0fefbc4592dd60cc063f7ce48353a28f4bd7"
     license: "MIT"
     intended_purpose: "Provider execution substrate, uniform LLM calling format, and model pricing lookup substrate."
     integration_type: "ADAPTER_INTEGRATION"
@@ -39,11 +39,12 @@ components:
     license_notes: "MIT License for core community SDK. Enterprise features and proxy components are strictly excluded."
     removal_strategy: "Can be disabled via config or uninstalled without impacting default INFUSE provider adapters (OpenAI, Anthropic, Gemini, DeepSeek, Mock)."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote https://github.com/BerriAI/litellm refs/tags/v1.54.0"
 
   - name: "jman4162/llm-token-router"
     repository: "https://github.com/jman4162/llm-token-router"
-    version: "commit-4f9e2b1029c78d6b"
-    commit_sha: "4f9e2b1029c78d6b0a1d5e3c7f9a2b8e4c1d6f3a"
+    version: "commit-985e24da5b67edb7d405040243bcfb8568029d40"
+    commit_sha: "985e24da5b67edb7d405040243bcfb8568029d40"
     license: "MIT"
     intended_purpose: "Conceptual reference for token velocity tracking, token budget constraints, and objective profile constraints."
     integration_type: "REIMPLEMENTED_CLEAN_ROOM"
@@ -64,11 +65,12 @@ components:
     license_notes: "Permissive MIT license. Clean-room conceptual adaptation without source code duplication."
     removal_strategy: "Internalized into native INFUSE Block 16 and Block 21 algorithms."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote https://github.com/jman4162/llm-token-router HEAD"
 
   - name: "timholm/llm-router"
     repository: "https://github.com/timholm/llm-router"
-    version: "commit-8c3b7a1290e43df1"
-    commit_sha: "8c3b7a1290e43df1c2e5b8a0d7f4a1c9e3b6d8f2"
+    version: "commit-70891ba4a33ea423b94a4a918c77323a2771f60a"
+    commit_sha: "70891ba4a33ea423b94a4a918c77323a2771f60a"
     license: "MIT"
     intended_purpose: "Reference for prompt complexity classification, semantic caching patterns, and health/latency signal scoring."
     integration_type: "REIMPLEMENTED_CLEAN_ROOM"
@@ -87,11 +89,12 @@ components:
     license_notes: "Permissive MIT license. Concepts implemented in native clean-room INFUSE modules."
     removal_strategy: "N/A - Native INFUSE classifier and health algorithms."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote https://github.com/timholm/llm-router HEAD"
 
   - name: "vllm-semantic-router"
     repository: "https://github.com/vllm-project/vllm"
     version: "v0.6.3"
-    commit_sha: "9a7f3d81b045e2c1d9b8a7f6e5c4d3b2a1f0e9d8"
+    commit_sha: "fd47e57f4b0d5f7920903490bce13bc9e49d8dba"
     license: "Apache-2.0"
     intended_purpose: "Architectural reference for signal -> projection -> decision -> algorithm -> plugin routing flow."
     integration_type: "REFERENCE_ONLY"
@@ -109,11 +112,12 @@ components:
     license_notes: "Apache 2.0 license. Used solely as a system design architectural reference."
     removal_strategy: "N/A - No code imported."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote --tags https://github.com/vllm-project/vllm refs/tags/v0.6.3"
 
   - name: "agentgateway"
     repository: "https://github.com/agentgateway/agentgateway"
-    version: "v0.2.1"
-    commit_sha: "3e8a4d92f1b0a7c6e5d4b3a2f1e0d9c8b7a6f5e4"
+    version: "v0.4.0"
+    commit_sha: "35f6a9a548a77db7cfe989a43854a23ca25fd5b3"
     license: "Apache-2.0"
     intended_purpose: "Architectural reference for edge proxy gateways and independently deployed high-performance HTTP/gRPC ingress."
     integration_type: "SEPARATE_SERVICE"
@@ -132,11 +136,12 @@ components:
     license_notes: "Apache 2.0 license. Separately deployed infrastructure boundary."
     removal_strategy: "Core INFUSE HTTP API operates standalone with Uvicorn/Starlette without requiring agentgateway."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote --tags https://github.com/agentgateway/agentgateway refs/tags/v0.4.0"
 
   - name: "k1y0miiii/llm-gateway"
     repository: "https://github.com/k1y0miiii/llm-gateway"
-    version: "commit-1a2b3c4d5e6f"
-    commit_sha: "1a2b3c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a0b"
+    version: "commit-7a68fdf6e0e806f05f2a4fc7ad99680b0e228a65"
+    commit_sha: "7a68fdf6e0e806f05f2a4fc7ad99680b0e228a65"
     license: "MIT"
     intended_purpose: "Evaluation candidate for JTF (Joint Token Feature) prompt compression."
     integration_type: "REFERENCE_ONLY"
@@ -153,11 +158,12 @@ components:
     license_notes: "MIT License. Research and candidate evaluation only."
     removal_strategy: "N/A - Not integrated."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote https://github.com/k1y0miiii/llm-gateway HEAD"
 
   - name: "tahasiddiquii/llm-router"
     repository: "https://github.com/tahasiddiquii/llm-router"
-    version: "commit-7f8e9d0a1b2c"
-    commit_sha: "7f8e9d0a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e"
+    version: "commit-0bca27ef3fb7ef4d999030aa193ec0badc02ce58"
+    commit_sha: "0bca27ef3fb7ef4d999030aa193ec0badc02ce58"
     license: "MIT"
     intended_purpose: "Evaluation candidate for binary classification routing benchmark methodology."
     integration_type: "REFERENCE_ONLY"
@@ -174,3 +180,4 @@ components:
     license_notes: "MIT License. Evaluation and benchmarking reference only."
     removal_strategy: "N/A - Not integrated."
     verification_status: "VERIFIED"
+    verification_source: "git ls-remote https://github.com/tahasiddiquii/llm-router HEAD"
