@@ -28,6 +28,7 @@ services:
       - INFUSE_ENABLE_METRICS=${INFUSE_ENABLE_METRICS:-true}
       - INFUSE_ENABLE_READINESS_PROBE=${INFUSE_ENABLE_READINESS_PROBE:-true}
       - INFUSE_MCP_SERVER_ENABLED=${INFUSE_MCP_SERVER_ENABLED:-false}
+      - INFUSE_MCP_TRANSPORT=${INFUSE_MCP_TRANSPORT:-streamable_http}
     healthcheck:
       test: ["CMD-SHELL", "python3 -c \"import urllib.request, sys; sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:8000/health').getcode() == 200 else 1)\""]
       interval: 15s

@@ -93,6 +93,42 @@ class TestChatGptMcpPlugin(unittest.TestCase):
             self.assertIn("2024-11-05", resp.text)
             self.assertIn("infuse", resp.text)
 
+    def test_01b_mcp_get_probe_and_accept_header_flexibility(self):
+        """Verify GET probe returns 200 JSON and POST accepts application/json or */*."""
+        with TestClient(self.app) as client:
+            # 1. GET probe without text/event-stream returns 200 status
+            get_resp = client.get("/mcp")
+            self.assertEqual(get_resp.status_code, 200)
+            data = get_resp.json()
+            self.assertEqual(data.get("transport"), "streamable_http")
+            self.assertEqual(data.get("status"), "ready")
+
+            # 2. POST with Accept: application/json
+            init_payload = {
+                "jsonrpc": "2.0",
+                "id": 10,
+                "method": "initialize",
+                "params": {
+                    "protocolVersion": "2024-11-05",
+                    "capabilities": {},
+                    "clientInfo": {"name": "chatgpt", "version": "1.0"},
+                },
+            }
+            resp_json = client.post(
+                "/mcp",
+                json=init_payload,
+                headers={"Accept": "application/json"},
+            )
+            self.assertEqual(resp_json.status_code, 200)
+
+            # 3. POST with Accept: */*
+            resp_star = client.post(
+                "/mcp",
+                json=init_payload,
+                headers={"Accept": "*/*"},
+            )
+            self.assertEqual(resp_star.status_code, 200)
+
     def test_02_mcp_tool_annotations_and_catalog(self):
         """Verify all 12 MCP tools have verified annotations (readOnlyHint, openWorldHint, destructiveHint)."""
         mcp_server = create_mcp_server()

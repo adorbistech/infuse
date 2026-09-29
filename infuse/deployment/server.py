@@ -113,6 +113,48 @@ def create_production_app(
     mcp_server.settings.transport_security.enable_dns_rebinding_protection = False
     mcp_app = mcp_server.streamable_http_app()
 
+    class StreamableHTTPProxyApp:
+        """Streamable HTTP ASGI proxy application for Model Context Protocol.
+
+        Handles Accept header negotiation and GET probe requests so OpenAI / ChatGPT,
+        desktop clients, browser verifiers, and Remote MCP clients connect cleanly over
+        Streamable HTTP without 406 Not Acceptable errors.
+        """
+
+        def __init__(self, raw_app: Any) -> None:
+            self.raw_app = raw_app
+
+        async def __call__(self, scope: Dict[str, Any], receive: Any, send: Any) -> None:
+            if scope.get("type") == "http":
+                headers = dict(scope.get("headers", []))
+                method = scope.get("method", "GET")
+                accept = headers.get(b"accept", b"").decode("utf-8", errors="ignore").lower()
+
+                # Handle GET probe requests that do not request text/event-stream
+                if method == "GET" and "text/event-stream" not in accept:
+                    resp = JSONResponse(
+                        content={
+                            "name": "INFUSE — Execution Intelligence Remote MCP",
+                            "version": __version__,
+                            "transport": "streamable_http",
+                            "endpoint": "/mcp",
+                            "protocol_version": "2024-11-05",
+                            "status": "ready",
+                        },
+                        status_code=200,
+                    )
+                    await resp(scope, receive, send)
+                    return
+
+                # Ensure Accept header includes application/json and text/event-stream for FastMCP Streamable HTTP handler
+                if "application/json" not in accept or "text/event-stream" not in accept:
+                    new_headers = [(k, v) for k, v in scope.get("headers", []) if k.lower() != b"accept"]
+                    new_headers.append((b"accept", b"application/json, text/event-stream"))
+                    scope = dict(scope)
+                    scope["headers"] = new_headers
+
+            await self.raw_app(scope, receive, send)
+
     @asynccontextmanager
     async def production_lifespan(app: Starlette):
         async with mcp_server.session_manager.run():
@@ -128,8 +170,8 @@ def create_production_app(
         Route("/v1/info", endpoint=info_endpoint, methods=["GET"]),
         Route("/.well-known/openai-apps-challenge", endpoint=openai_challenge_endpoint, methods=["GET"]),
         Mount("/chatgpt", app=chatgpt_router),
+        Route("/mcp", endpoint=StreamableHTTPProxyApp(mcp_app)),
     ])
-    base_app.router.routes.extend(mcp_app.routes)
 
     return base_app
 
