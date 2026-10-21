@@ -1,0 +1,16 @@
+{
+  "tsconfigPath": "./tsconfig.json",
+  "entrypointPatterns": ["page.", "route.", "layout.", "index.", "main.", "app.", "serve."],
+  "stubMarkers": ["// TODO", "// FIXME", "throw new Error(\"Not implemented\")"],
+  "ignorePatterns": [
+    "node_modules/",
+    "dist/",
+    ".next/",
+    "*.test.ts",
+    ".clinerules",
+    ".cursorrules",
+    ".windsurfrules",
+    ".antigravity/"
+  ],
+  "enableTypeCheck": true
+}
