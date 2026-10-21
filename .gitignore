@@ -43,3 +43,14 @@ coverage.xml
 .vscode/
 *.swp
 *.swo
+
+.shield/
+
+# AI Agent Guardrails & Tooling Scaffolding
+.antigravity/
+.claude/
+.cursorrules
+.clinerules
+.windsurfrules
+CLAUDE.md
+
