@@ -517,3 +517,20 @@ INFUSE is open-source software licensed under the Apache License, Version 2.0.
   <a href="https://github.com/adorbistech/infuse">⭐ Star INFUSE on GitHub</a> ·
   <a href="https://infuse.adorbistech.com/">Official Website</a>
 </p>
+
+---
+
+## INFUSE Ecosystem
+
+INFUSE provides execution intelligence and governance for autonomous AI agents, with integrations for different developer platforms.
+
+- **Official Website:** https://infuse.adorbistech.com/
+- **Core Project:** https://github.com/adorbistech/infuse
+- **Claude Integration:** https://github.com/adorbistech/infuse-claude
+- **Cursor Integration:** https://github.com/adorbistech/infuse-cursor
+- **Visual Studio Code Integration:** https://github.com/adorbistech/infuse-vscode
+- **Google Antigravity Integration:** https://github.com/adorbistech/infuse-antigravity
+
+Visit the core repository for architecture and technical documentation. For platform-specific installation and configuration, follow the README in the corresponding integration repository.
+
+---
